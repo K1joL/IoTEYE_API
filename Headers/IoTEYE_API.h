@@ -17,14 +17,35 @@
 #include <iostream>
 #include <string>
 
+/*
+*   UserID пользователь получает в ответ на регистрацию
+*   
+*   
+*   
+*   
+*/
+
+
 namespace IoTEYE_API
 {
+    // Фукнция отправки запроса
     bool SendRequest(uint8_t method, const cpr::Payload &payload);
-    bool CreateVirtualPin(const std::string& name, const std::string& dataType);
+    //Фукнции формирования запроса(пакета):
+    //для команды создания нового пользователя системы ("ru")
+    //пока не знаю как сделать
+    // bool RegisterNewUser();
+    //для команды создания нового устройства пользователя ("rd")
+    // bool RegisterNewDevice(const std::string& userID);
+    //для команды создания виртуального пина ("cp")
+    bool CreateVirtualPin(const std::string& pinNumber, const std::string& dataType);
+    //для команды получения статуса девайса ("ds")
     bool GetDeviceStatus();
-    bool UpdateVirtualPin(const std::string& name, double data);
-    bool UpdateVirtualPin(const std::string& name, int data);
-    bool UpdateVirtualPin(const std::string& name, std::string& data);
+    // для команды обновления значения пина ("up")
+    bool UpdateVirtualPin(const std::string& pinNumber, double data);
+    bool UpdateVirtualPin(const std::string& pinNumber, int data);
+    bool UpdateVirtualPin(const std::string& pinNumber, std::string& data);
+    // для команды удаления пина ("up")
+    bool DeleteVirtualPin(const std::string& pinNumber);
 
     enum HTTP_METHOD
     {
