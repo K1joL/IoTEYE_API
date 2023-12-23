@@ -25,6 +25,13 @@
 *   
 */
 
+/*
+*   TODO:
+*   make transfer authToken for methods
+*   
+*   
+*   
+*/
 
 namespace IoTEYE_API
 {
@@ -44,8 +51,10 @@ namespace IoTEYE_API
     bool UpdateVirtualPin(const std::string& pinNumber, double data);
     bool UpdateVirtualPin(const std::string& pinNumber, int data);
     bool UpdateVirtualPin(const std::string& pinNumber, std::string& data);
-    // для команды удаления пина ("up")
+    // для команды удаления пина ("dp")
     bool DeleteVirtualPin(const std::string& pinNumber);
+    // для команды получения данных с пина ("gp")
+    bool GetVirtualPin(const std::string& pinNumber);
 
     enum HTTP_METHOD
     {
