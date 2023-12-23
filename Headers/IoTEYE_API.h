@@ -19,12 +19,20 @@
 
 namespace IoTEYE_API
 {
-    bool SendRequest(const cpr::Payload &payload);
+    bool SendRequest(uint8_t method, const cpr::Payload &payload);
     bool CreateVirtualPin(const std::string& name, const std::string& dataType);
     bool GetDeviceStatus();
     bool UpdateVirtualPin(const std::string& name, double data);
     bool UpdateVirtualPin(const std::string& name, int data);
     bool UpdateVirtualPin(const std::string& name, std::string& data);
+
+    enum HTTP_METHOD
+    {
+        GET,
+        POST,
+        PUT,
+        DELETE
+    };
 }
 
 #endif //IoTEYE_API_H

@@ -1,5 +1,11 @@
 #include "../Headers/IoTEYE_API.h"
 
+/* TODO
+*  Refactoring SendRequest:
+*  It is necessary to transfer method type
+*
+*/
+
 /*
 *   payload - request payload
 *   
@@ -7,14 +13,31 @@
 *   false - OK
 *   true - Error
 */
-bool IoTEYE_API::SendRequest(const cpr::Payload &payload)
+bool IoTEYE_API::SendRequest(uint8_t method, const cpr::Payload &payload)
 {
     std::string url = SERVER_URL;
     url += ':';
     url += SERVER_PORT;
     url += ENDPOINT;
-    cpr::Response r = cpr::Post(cpr::Url{url},
-                                payload);
+    cpr::Response r {};
+    switch (method)
+    {
+    case POST:
+        r = cpr::Post(cpr::Url{url}, payload);
+        break;
+    case GET:
+        r = cpr::Get(cpr::Url{url}, payload);
+        break;
+    case PUT:
+        r = cpr::Put(cpr::Url{url}, payload);
+        break;
+    case DELETE:
+        r = cpr::Delete(cpr::Url{url}, payload);
+        break;
+    default:
+        std::cerr << "Error: unknown method!" << std::endl;
+    }
+    
     if(r.status_code != cpr::status::HTTP_OK)
     {
         std::cerr   << "Error code: " << static_cast<uint16_t>(r.error.code) << std::endl
