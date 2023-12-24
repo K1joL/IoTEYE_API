@@ -9,12 +9,13 @@
 
 /*
 *   payload - request payload
-*   
+*   pResponse - pointer to cpr::Response if you want to get response
+*
 *   Returns:
 *   false - OK
 *   true - Error
 */
-bool IoTEYE_API::SendRequest(uint8_t method, const cpr::Payload &payload)
+bool IoTEYE_API::SendRequest(uint8_t method, const cpr::Payload &payload, cpr::Response* pResponse)
 {
     // Формируем url для доступа к нужному эндпоинту
     std::string url = SERVER_URL;
@@ -48,10 +49,13 @@ bool IoTEYE_API::SendRequest(uint8_t method, const cpr::Payload &payload)
                     << "Error: " << r.error.message << std::endl;
         return true;
     }   
+    if(pResponse != nullptr)
+        *pResponse = r;
+
     return false;
 }
 
-bool IoTEYE_API::CreateVirtualPin(const std::string &name, const std::string &dataType)
+bool IoTEYE_API::CreateVirtualPin(const std::string &pinNumber, const std::string &dataType)
 {
     
     return false;
@@ -62,17 +66,17 @@ bool IoTEYE_API::GetDeviceStatus()
     return false;
 }
 
-bool IoTEYE_API::UpdateVirtualPin(const std::string &name, double data)
+bool IoTEYE_API::UpdateVirtualPin(const std::string &pinNumber, double data)
 {
     return false;
 }
 
-bool IoTEYE_API::UpdateVirtualPin(const std::string &name, int data)
+bool IoTEYE_API::UpdateVirtualPin(const std::string &pinNumber, int data)
 {
     return false;
 }
 
-bool IoTEYE_API::UpdateVirtualPin(const std::string &name, std::string &data)
+bool IoTEYE_API::UpdateVirtualPin(const std::string &pinNumber, std::string &data)
 {
     return false;
 }

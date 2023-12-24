@@ -13,6 +13,12 @@
 #define ENDPOINT "/IoTEYE_PINS"
 #endif //ENDPOINT
 
+#ifndef CLIENT_API
+#ifndef USERID
+//#error
+#endif //USERID
+#endif //CLIENT_API
+
 #include <cpr/cpr.h>
 #include <iostream>
 #include <string>
@@ -36,7 +42,7 @@
 namespace IoTEYE_API
 {
     // Фукнция отправки запроса
-    bool SendRequest(uint8_t method, const cpr::Payload &payload);
+    bool SendRequest(uint8_t method, const cpr::Payload &payload, cpr::Response* pResponse = nullptr);
     //Фукнции формирования запроса(пакета):
     //для команды создания нового пользователя системы ("ru")
     //пока не знаю как сделать
