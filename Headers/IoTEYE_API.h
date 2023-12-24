@@ -54,9 +54,9 @@ namespace IoTEYE_API
     //для команды получения статуса девайса ("ds")
     bool GetDeviceStatus();
     // для команды обновления значения пина ("up")
-    bool UpdateVirtualPin(const std::string& pinNumber, double data);
-    bool UpdateVirtualPin(const std::string& pinNumber, int data);
-    bool UpdateVirtualPin(const std::string& pinNumber, std::string& data);
+    bool UpdateVirtualPin(const std::string& pinNumber, double value);
+    bool UpdateVirtualPin(const std::string& pinNumber, int value);
+    bool UpdateVirtualPin(const std::string& pinNumber, std::string& value);
     // для команды удаления пина ("dp")
     bool DeleteVirtualPin(const std::string& pinNumber);
     // для команды получения данных с пина ("pv")
