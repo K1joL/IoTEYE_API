@@ -60,7 +60,7 @@ namespace IoTEYE_API
     // для команды удаления пина ("dp")
     bool DeleteVirtualPin(const std::string& pinNumber);
     // для команды получения данных с пина ("pv")
-    bool GetVirtualPin(const std::string& pinNumber);
+    std::string GetVirtualPin(const std::string& pinNumber);
 
     enum HTTP_METHOD
     {

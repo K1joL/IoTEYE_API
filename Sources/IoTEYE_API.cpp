@@ -85,7 +85,7 @@ bool IoTEYE_API::DeleteVirtualPin(const std::string &pinNumber)
     return false;
 }
 
-bool IoTEYE_API::GetVirtualPin(const std::string &pinNumber)
+std::string IoTEYE_API::GetVirtualPin(const std::string &pinNumber)
 {
-    return false;
+    return std::string{};
 }
