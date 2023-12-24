@@ -43,7 +43,7 @@ bool IoTEYE_API::SendRequest(uint8_t method, const cpr::Payload &payload, cpr::R
         std::cerr << "Error: unknown method!" << std::endl;
     }
     // Если получен не 200, то выводим ошибку 
-    if(r.status_code != cpr::status::HTTP_OK || 
+    if(r.status_code != cpr::status::HTTP_OK &&
         r.status_code != cpr::status::HTTP_CREATED)
     {
         std::cerr   << "Error code: " << static_cast<uint16_t>(r.error.code) << std::endl
