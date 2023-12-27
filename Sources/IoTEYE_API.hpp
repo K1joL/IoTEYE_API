@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <cpr/cpr.h>
+#include <unordered_map>
 
 #ifndef SERVER_URL
 #define SERVER_URL "127.0.0.1"
@@ -29,6 +30,13 @@
 #ifndef ENDPOINT_PINS
 #define ENDPOINT_PINS "/pins"
 #endif //!ENDPOINT_PINS
+
+#ifndef ENDPOINT_DEVICE
+#define ENDPOINT_DEVICE "/devices"
+#endif //!ENDPOINT_DEVICE
+
+static std::unordered_map<std::string, uint64_t> s_devices;
+static std::unordered_map<std::string, uint8_t> s_devicesStatus;
 
 /*
 *   UserID пользователь получает в ответ на регистрацию
@@ -57,7 +65,7 @@ namespace ioteyeApi
 *   true - Error
 */
     bool SendRequest(uint8_t method, cpr::Payload &payload, const std::string& endpoint = "", cpr::Response* pResponse = nullptr);
-    //Фукнции формирования запроса(пакета):
+    //Фукнция формирования запроса(пакета):
     //для команды создания нового пользователя системы ("ru")
     //
     // Returns:
@@ -66,16 +74,28 @@ namespace ioteyeApi
     #ifdef CLIENT_API_MODE
     std::string RegisterNewUser(const std::string& customUserID = "");
     #endif //!CLIENT_API_MODE
+    //Фукнция формирования запроса(пакета):
     //для команды создания нового устройства пользователя ("rd")
-    // bool RegisterNewDevice(const std::string& userID);
+    bool RegisterNewDevice(const std::string& devName);
+    //Фукнция формирования запроса(пакета):
     //для команды создания виртуального пина ("cp")
     bool CreateVirtualPin(const std::string& pinNumber, const std::string& dataType, const std::string& defaultData);
+    //Фукнция формирования запроса(пакета):
     //для команды получения статуса девайса ("ds")
-    bool GetDeviceStatus();
+    //
+    //  Returns:
+    //  true - if something went wrong
+    //  false - if request successfully processed
+    //  update status of s_devicesStatus.at(devName)
+    //
+    bool GetDeviceStatus(const std::string& devName);
+    //Фукнция формирования запроса(пакета):
     // для команды обновления значения пина ("up")
     bool UpdateVirtualPin(const std::string& pinNumber, const std::string& value);
+    //Фукнция формирования запроса(пакета):
     // для команды удаления пина ("dp")
     bool DeleteVirtualPin(const std::string& pinNumber);
+    //Фукнция формирования запроса(пакета):
     // для команды получения данных с пина ("pv")
     std::string GetVirtualPin(const std::string& pinNumber);
 
@@ -122,7 +142,7 @@ bool ioteyeApi::SendRequest(uint8_t method, cpr::Payload &payload, const std::st
         r = cpr::Post(cpr::Url{url}, payload);
         break;
     case GET:
-        r = cpr::Post(cpr::Url{url}, payload);
+        r = cpr::Get(cpr::Url{url}, payload);
         break;
     case PUT:
         r = cpr::Put(cpr::Url{url}, payload);
@@ -176,9 +196,67 @@ std::string ioteyeApi::RegisterNewUser(const std::string& customUserID)
 }
 #endif //!CLIENT_API_MODE
 
-bool ioteyeApi::GetDeviceStatus()
+bool ioteyeApi::GetDeviceStatus(const std::string& devName)
 {
-    return false;
+    cpr::Payload p{};
+    p.Add({"userID", G_USERID});
+    p.Add({"cmd", "ds"});
+
+    auto device = s_devices.find(devName);
+    if(device == s_devices.end())
+    {
+        std::cout << "Device with this name doesn`t exists!" << std::endl;
+        return true;
+    }
+    std::string endpoint {ENDPOINT_USER};
+    endpoint += s_ENDPOINT_USERID;
+    endpoint += ENDPOINT_DEVICE;
+    endpoint += '/';
+    endpoint += std::to_string(device->second);
+    endpoint += "/ds";
+    cpr::Response response{};
+
+    bool status = false;
+    if(!ioteyeApi::SendRequest(ioteyeApi::GET, p, endpoint, &response))
+    {
+        status = (GetValue(response.text, "devStatus")[0] == '0') ? false : true;
+        std::cout   << "Device with name: " << devName << " is " 
+                    << ((status) ? "Online" : "Offline!") << std::endl;
+        s_devicesStatus.at(devName) = std::stoi(GetValue(response.text, "devStatus"));
+        
+        return false;
+    }
+    std::cout << "Something went wrong!" << std::endl;
+    return true;
+}
+
+bool ioteyeApi::RegisterNewDevice(const std::string& devName)
+{
+    auto device = s_devices.find(devName);
+    if(device != s_devices.end())
+    {
+        std::cout << "Device with this name already exist!" << std::endl;
+        return true;
+    }
+    cpr::Payload p{};
+    p.Add({"userID", G_USERID});
+    p.Add({"cmd", "rd"});
+
+    std::string endpoint {ENDPOINT_USER};
+    endpoint += s_ENDPOINT_USERID;
+    endpoint += ENDPOINT_DEVICE;
+
+    cpr::Response response{};
+    if(!ioteyeApi::SendRequest(ioteyeApi::POST, p, endpoint, &response))
+    {
+        uint64_t devID = std::stoul(GetValue(response.text, "devID"));
+        s_devices.emplace(devName, devID);
+        s_devicesStatus.emplace(devName, false);
+        std::cout   << "Device with name: " << devName << " added succesully! devID: " 
+                    << devID << std::endl;
+        return false;
+    }
+    return true;
 }
 
 bool ioteyeApi::CreateVirtualPin(const std::string &pinNumber, const std::string &dataType, const std::string& defaultData)
@@ -244,7 +322,7 @@ std::string ioteyeApi::GetVirtualPin(const std::string &pinNumber)
     endpoint += s_ENDPOINT_USERID;
     endpoint += ENDPOINT_PINS;
 
-    if (!ioteyeApi::SendRequest(ioteyeApi::GET, p, endpoint, &res))
+    if (!ioteyeApi::SendRequest(ioteyeApi::POST, p, endpoint, &res))
         return GetValue(res.text);
     else
         return std::string("Error: " + res.text);
