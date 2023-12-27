@@ -1,16 +1,25 @@
-#include "Headers/IoTEYE_API.h"
+#define CLIENT_API_MODE
+#define DEBUG
+const char* USERID = "";
+
+#include "Sources/IoTEYE_API.hpp"
 
 int main()
 {
-    // Создаем пакет для передачи
-    // Добавляем разные поля (ключ:значение)
-    cpr::Payload p{{"userID", "someID"}};
-    p.Add({"cmd", "cp"});
-    p.Add({"authToken", "someToken"});
-    p.Add({"pinNumber", "0"});
-    p.Add({"dataType", "int"});
-    p.Add({"defaultValue", "0"});
     // Передаем номер метода POST и сформированный пакет
-    IoTEYE_API::SendRequest(IoTEYE_API::POST, p);
+    USERID = ioteyeApi::RegisterNewUser("Kijol").c_str();
+    std::cout << USERID << std::endl;
+    ioteyeApi::CreateVirtualPin("0", "int", "199");
+    std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
+    std::cout << ioteyeApi::UpdateVirtualPin("0","1") << std::endl;
+    std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
+    std::cout << ioteyeApi::DeleteVirtualPin("0") << std::endl;
+    std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
+
+    // cpr::Payload p{{"userID", "kukaID"}};
+    // p.Add({"cmd", "pv"});
+    // p.Add({"pinNumber", "0"});
+    // p.Add({"dataType", "int"});
+    // p.Add({"value", "0"});
     return 0;
 }
