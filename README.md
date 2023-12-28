@@ -1,6 +1,6 @@
 # ioteyeapi
 
-This is the ioteyeapi project.
+This is the IoTEYE API project. It can be used for make and send http-requests to IoTEYE Server.
 
 # Building and installing
 
