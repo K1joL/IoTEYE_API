@@ -6,37 +6,15 @@
 #include <cpr/cpr.h>
 #include <unordered_map>
 
-#ifndef SERVER_URL
-#define SERVER_URL "127.0.0.1"
-#endif //!SERVER_URL
+static std::string s_SERVER_URL = {"127.0.0.1"};
+static std::string s_SERVER_PORT = {"8081"};
+static std::string s_ENDPOINT_USER = {"/user"};
+static std::string s_ENDPOINT_PINS = {"/pins"};
+static std::string s_ENDPOINT_DEVICE = {"/devices"};
 
-#ifndef SERVER_PORT
-#define SERVER_PORT "8081"
-#endif //!SERVER_PORT
-
-#ifndef ENDPOINT_USER
-#define ENDPOINT_USER "/user"
-#endif //!ENDPOINT_USER
-
-// #ifndef CLIENT_API_MODE
-//     extern const char *G_USERID;
-//     static std::string s_ENDPOINT_USERID{G_USERID};
-// #else
-#ifndef USERID
-#define USERID
-    #warning Client api mode on. Before use requests you need to register user with RegisterUser() function
-    static std::string G_USERID{};
-    static std::string s_ENDPOINT_USERID{};
-#endif //!USERID
-// #endif // !CLIENT_API_MODE
-
-#ifndef ENDPOINT_PINS
-#define ENDPOINT_PINS "/pins"
-#endif //!ENDPOINT_PINS
-
-#ifndef ENDPOINT_DEVICE
-#define ENDPOINT_DEVICE "/devices"
-#endif //!ENDPOINT_DEVICE
+#warning Before use requests you need to register user with RegisterUser() function
+static std::string G_USERID{};
+static std::string s_ENDPOINT_USERID{};
 
 static std::unordered_map<std::string, uint64_t> s_devices;
 static std::unordered_map<std::string, uint8_t> s_devicesStatus;
@@ -67,22 +45,20 @@ namespace ioteyeApi
 *   false - OK
 *   true - Error
 */
-    bool SendRequest(uint8_t method, cpr::Payload &payload, const std::string& endpoint = "", cpr::Response* pResponse = nullptr);
+    bool sendRequest(uint8_t method, cpr::Payload &payload, const std::string& endpoint = "", cpr::Response* pResponse = nullptr);
     //Фукнция формирования запроса(пакета):
     //для команды создания нового пользователя системы ("ru")
     //
     // Returns:
     // - Empty string if something went wrong
     // - Your user ID 
-    // #ifdef CLIENT_API_MODE
-    std::string RegisterNewUser(const std::string& customUserID = "");
-    // #endif //!CLIENT_API_MODE
+    std::string registerNewUser(const std::string& customUserID = "");
     //Фукнция формирования запроса(пакета):
     //для команды создания нового устройства пользователя ("rd")
-    bool RegisterNewDevice(const std::string& devName);
+    bool registerNewDevice(const std::string& devName);
     //Фукнция формирования запроса(пакета):
     //для команды создания виртуального пина ("cp")
-    bool CreateVirtualPin(const std::string& pinNumber, const std::string& dataType, const std::string& defaultData);
+    bool createVirtualPin(const std::string& pinNumber, const std::string& dataType, const std::string& defaultData);
     //Фукнция формирования запроса(пакета):
     //для команды получения статуса девайса ("ds")
     //
@@ -91,19 +67,26 @@ namespace ioteyeApi
     //  false - if request successfully processed
     //  update status of s_devicesStatus.at(devName)
     //
-    bool GetDeviceStatus(const std::string& devName);
+    bool getDeviceStatus(const std::string& devName);
     //Фукнция формирования запроса(пакета):
     // для команды обновления значения пина ("up")
-    bool UpdateVirtualPin(const std::string& pinNumber, const std::string& value);
+    bool updateVirtualPin(const std::string& pinNumber, const std::string& value);
     //Фукнция формирования запроса(пакета):
     // для команды удаления пина ("dp")
-    bool DeleteVirtualPin(const std::string& pinNumber);
+    bool deleteVirtualPin(const std::string& pinNumber);
     //Фукнция формирования запроса(пакета):
     // для команды получения данных с пина ("pv")
-    std::string GetVirtualPin(const std::string& pinNumber);
+    std::string getVirtualPin(const std::string& pinNumber);
 
     // Функция для получения значения пина из ответа 
-    std::string GetValue(const std::string& responseText, const std::string& key = "");
+    std::string getValue(const std::string& responseText, const std::string& key = "");
+
+    //Функции для настройки пользоватлеьских эндопоинтов
+    inline void setServerUrl(const std::string& serverUrl);
+    inline void setServerPort(const std::string& serverPort);
+    inline void setUserEndpoint(const std::string& userEndpoint);
+    inline void setPinEndpoint(const std::string& pinsEndpoint);
+    inline void setDeviceEndpoint(const std::string& deviceEndpoint);
 
     enum HTTP_METHOD
     {
