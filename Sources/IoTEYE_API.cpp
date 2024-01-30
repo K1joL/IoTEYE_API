@@ -1,5 +1,5 @@
 #include "../Headers/IoTEYE_API.h"
-#include "IoTEYE_API.h"
+// #include "IoTEYE_API.h"
 
 bool ioteyeApi::sendRequest(uint8_t method, cpr::Payload &payload, const std::string& endpoint, cpr::Response* pResponse)
 {
@@ -60,7 +60,7 @@ std::string ioteyeApi::registerNewUser(const std::string& customUserID)
     if(customUserID != "")
         p.Add({"customID", customUserID});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     cpr::Response response{};
     if(!ioteyeApi::sendRequest(ioteyeApi::POST, p, endpoint, &response))
     {
@@ -86,7 +86,7 @@ bool ioteyeApi::getDeviceStatus(const std::string& devName)
         std::cout << "Device with this name doesn`t exists!" << std::endl;
         return true;
     }
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_DEVICE;
     endpoint += '/';
@@ -120,7 +120,7 @@ bool ioteyeApi::registerNewDevice(const std::string& devName)
     p.Add({"userID", G_USERID});
     p.Add({"cmd", "rd"});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_DEVICE;
 
@@ -147,7 +147,7 @@ bool ioteyeApi::createVirtualPin(const std::string &pinNumber, const std::string
     p.Add({"dataType", dataType});
     p.Add({"value", defaultData});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
     #ifdef DEBUG
@@ -165,7 +165,7 @@ bool ioteyeApi::updateVirtualPin(const std::string &pinNumber, const std::string
     p.Add({"pinNumber", pinNumber});
     p.Add({"value", value});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
     
@@ -180,7 +180,7 @@ bool ioteyeApi::deleteVirtualPin(const std::string &pinNumber)
     p.Add({"cmd", "dp"});
     p.Add({"pinNumber", pinNumber});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
 
@@ -196,7 +196,7 @@ std::string ioteyeApi::getVirtualPin(const std::string &pinNumber)
     p.Add({"cmd", "pv"});
     p.Add({"pinNumber", pinNumber});
 
-    std::string endpoint {s_ENDPOINT_USER};
+    std::string endpoint {s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
 
@@ -225,12 +225,12 @@ void ioteyeApi::setServerPort(const std::string &serverPort)
     s_SERVER_PORT = serverPort;
 }
 
-void setUserEndpoint(const std::string &userEndpoint)
+void setUsersEndpoint(const std::string &usersEndpoint)
 {
-    s_ENDPOINT_USER = userEndpoint;
+    s_ENDPOINT_USERS = usersEndpoint;
 }
 
-void setPinEndpoint(const std::string &pinsEndpoint)
+void setPinsEndpoint(const std::string &pinsEndpoint)
 {
     s_ENDPOINT_PINS = pinsEndpoint;
 }

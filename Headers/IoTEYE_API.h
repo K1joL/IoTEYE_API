@@ -8,7 +8,7 @@
 
 static std::string s_SERVER_URL = {"127.0.0.1"};
 static std::string s_SERVER_PORT = {"8081"};
-static std::string s_ENDPOINT_USER = {"/user"};
+static std::string s_ENDPOINT_USERS = {"/user"};
 static std::string s_ENDPOINT_PINS = {"/pins"};
 static std::string s_ENDPOINT_DEVICE = {"/devices"};
 
@@ -84,8 +84,8 @@ namespace ioteyeApi
     //Функции для настройки пользоватлеьских эндопоинтов
     inline void setServerUrl(const std::string& serverUrl);
     inline void setServerPort(const std::string& serverPort);
-    inline void setUserEndpoint(const std::string& userEndpoint);
-    inline void setPinEndpoint(const std::string& pinsEndpoint);
+    inline void setUsersEndpoint(const std::string& userEndpoint);
+    inline void setPinsEndpoint(const std::string& pinsEndpoint);
     inline void setDeviceEndpoint(const std::string& deviceEndpoint);
 
     enum HTTP_METHOD
