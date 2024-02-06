@@ -14,42 +14,49 @@ bool ioteyeApi::sendRequest(uint8_t method, cpr::Payload &payload, const std::st
         url += "/";
     
     // Создаем переменную содержащую информацию об ответе
-    cpr::Response r {};
+    cpr::Response *r;
+    
+    if(pResponse != nullptr)
+        r = pResponse;
+    else r = new cpr::Response;
+    
     //выбор метода и отправка
     switch (method)
     {
     case POST:
-        r = cpr::Post(cpr::Url{url}, payload);
+        *r = cpr::Post(cpr::Url{url}, payload);
         break;
     case GET:
-        r = cpr::Get(cpr::Url{url}, payload);
+        *r = cpr::Get(cpr::Url{url}, payload);
         break;
     case PUT:
-        r = cpr::Put(cpr::Url{url}, payload);
+        *r = cpr::Put(cpr::Url{url}, payload);
         break;
     case DELETE:
-        r = cpr::Delete(cpr::Url{url}, payload);
+        *r = cpr::Delete(cpr::Url{url}, payload);
         break;
     default:
         std::cerr << "Error: unknown method!" << std::endl;
     }
     
     // Если получен не 200, то выводим ошибку 
-    if(r.status_code != cpr::status::HTTP_OK &&
-        r.status_code != cpr::status::HTTP_CREATED)
+    if(r->status_code != cpr::status::HTTP_OK &&
+        r->status_code != cpr::status::HTTP_CREATED)
     {
 #ifdef DEBUG
         std::cerr   << "Error code: " << r.status_code << std::endl
                     << "Error cpr code: " << static_cast<uint16_t>(r.error.code) << std::endl 
                     << "Error: " << r.error.message << std::endl;
 #endif //!DEBUG
+        if(pResponse == nullptr)
+            delete r;
         return true;
     }
     #ifdef DEBUG
     std::cout << "Response: " << r.text << std::endl;
     #endif //!DEBUG
-    if(pResponse != nullptr)
-        *pResponse = r;
+    if(pResponse == nullptr)
+        delete r;
 
     return false;
 }
