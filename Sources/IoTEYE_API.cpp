@@ -40,25 +40,34 @@ bool ioteyeApi::sendRequest(uint8_t method,
         *r = cpr::Delete(cpr::Url{url}, payload);
         break;
     default:
-        std::cerr << "Error: unknown method!" << std::endl;
+        debugMessage("Error: unknown method!");
+        NEWLINE
+        return true;
+        break;
     }
 
     // Если получен не 200, то выводим ошибку
     if (r->status_code != cpr::status::HTTP_OK &&
         r->status_code != cpr::status::HTTP_CREATED)
     {
-#ifdef DEBUG
-        std::cerr << "Error code: " << r.status_code << std::endl
-                  << "Error cpr code: " << static_cast<uint16_t>(r.error.code) << std::endl
-                  << "Error: " << r.error.message << std::endl;
-#endif //! DEBUG
+        debugMessage("Error code: ");
+        debugMessage(r->status_code);
+        NEWLINE
+        debugMessage("Error cpr code: ");
+        debugMessage(static_cast<uint16_t>(r->error.code));
+        NEWLINE
+        debugMessage("Error: ");
+        debugMessage(r->error.message);
+        NEWLINE
+
         if (pResponse == nullptr)
             delete r;
         return true;
     }
-#ifdef DEBUG
-    std::cout << "Response: " << r.text << std::endl;
-#endif //! DEBUG
+    debugMessage("Response: ");
+    debugMessage(r->text);
+    NEWLINE
+
     if (pResponse == nullptr)
         delete r;
 
@@ -103,25 +112,34 @@ bool ioteyeApi::sendRequest(uint8_t method,
         *r = cpr::Delete(cpr::Url{url}, payload);
         break;
     default:
-        std::cerr << "Error: unknown method!" << std::endl;
+        debugMessage("Error: unknown method!");
+        NEWLINE
+        return true;
+        break;
     }
 
     // Если получен не 200, то выводим ошибку
     if (r->status_code != cpr::status::HTTP_OK &&
         r->status_code != cpr::status::HTTP_CREATED)
     {
-#ifdef DEBUG
-        std::cerr << "Error code: " << r.status_code << std::endl
-                  << "Error cpr code: " << static_cast<uint16_t>(r.error.code) << std::endl
-                  << "Error: " << r.error.message << std::endl;
-#endif //! DEBUG
+        debugMessage("Error code: ");
+        debugMessage(r->status_code);
+        NEWLINE
+        debugMessage("Error cpr code: ");
+        debugMessage(static_cast<uint16_t>(r->error.code));
+        NEWLINE
+        debugMessage("Error: ");
+        debugMessage(r->error.message);
+        NEWLINE
+
         if (pResponse == nullptr)
             delete r;
         return true;
     }
-#ifdef DEBUG
-    std::cout << "Response: " << r.text << std::endl;
-#endif //! DEBUG
+    debugMessage("Response: ");
+    debugMessage(r->text);
+    NEWLINE
+
     if (pResponse == nullptr)
         delete r;
 
@@ -140,9 +158,9 @@ std::string ioteyeApi::registerNewUser(const std::string &customUserID)
     {
         G_USERID = (getValue(response.text, "userID"));
         s_ENDPOINT_USERID = '/' + G_USERID;
-#ifdef DEBUG
-        std::cout << G_USERID << std::endl;
-#endif
+
+        debugMessage(G_USERID);
+        NEWLINE
         return G_USERID;
     }
     return "";
@@ -157,7 +175,8 @@ bool ioteyeApi::getDeviceStatus(const std::string &devName)
     auto device = s_devices.find(devName);
     if (device == s_devices.end())
     {
-        std::cout << "Device with this name doesn`t exists!" << std::endl;
+        debugMessage("Device with this name doesn`t exists!");
+        NEWLINE
         return true;
     }
     std::string endpoint{s_ENDPOINT_USERS};
@@ -172,13 +191,20 @@ bool ioteyeApi::getDeviceStatus(const std::string &devName)
     if (!ioteyeApi::sendRequest(ioteyeApi::GET, endpoint, p, &response))
     {
         status = (getValue(response.text, "devStatus")[0] == '0') ? false : true;
-        std::cout << "Device with name: " << devName << " is "
-                  << ((status) ? "Online" : "Offline!") << std::endl;
+
+        debugMessage("Device with name: ");
+        debugMessage(devName);
+        debugMessage(" is ");
+        debugMessage(((status) ? "Online" : "Offline!"));
+        NEWLINE
+
         s_devicesStatus.at(devName) = std::stoi(getValue(response.text, "devStatus"));
 
         return false;
     }
-    std::cout << "Something went wrong!" << std::endl;
+    debugMessage("Something went wrong!");
+    NEWLINE
+
     return true;
 }
 
@@ -187,7 +213,9 @@ bool ioteyeApi::registerNewDevice(const std::string &devName)
     auto device = s_devices.find(devName);
     if (device != s_devices.end())
     {
-        std::cout << "Device with this name already exist!" << std::endl;
+        debugMessage("Device with this name already exist!");
+        NEWLINE
+
         return true;
     }
     cpr::Payload p{};
@@ -204,8 +232,13 @@ bool ioteyeApi::registerNewDevice(const std::string &devName)
         uint64_t devID = std::stoul(getValue(response.text, "devID"));
         s_devices.emplace(devName, devID);
         s_devicesStatus.emplace(devName, false);
-        std::cout << "Device with name: " << devName << " added succesully! devID: "
-                  << devID << std::endl;
+
+        debugMessage("Device with name: ");
+        debugMessage(devName);
+        debugMessage(" added succesully! devID: ");
+        debugMessage(devID);
+        NEWLINE
+
         return false;
     }
     return true;
@@ -224,9 +257,10 @@ bool ioteyeApi::createVirtualPin(const std::string &pinNumber, const std::string
     std::string endpoint{s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
-#ifdef DEBUG
-    std::cout << endpoint << std::endl;
-#endif
+
+    debugMessage(endpoint);
+    NEWLINE
+
     if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p))
         return false;
     return true;
@@ -275,9 +309,12 @@ std::string ioteyeApi::getVirtualPin(const std::string &pinNumber)
     endpoint += s_ENDPOINT_PINS;
 
     if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p, &res))
-        return getValue(res.text);
+        return getValue(res.text, "PinValue");
     else
-        return std::string("Error: " + res.text);
+    {
+        debugMessage("Error: " + res.text);
+        return std::string();
+    }
 }
 
 std::string ioteyeApi::getValue(const std::string &responseText, const std::string &key)
