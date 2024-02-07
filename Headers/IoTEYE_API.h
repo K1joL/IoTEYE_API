@@ -45,7 +45,15 @@ namespace ioteyeApi
 *   false - OK
 *   true - Error
 */
-    bool sendRequest(uint8_t method, cpr::Payload &payload, const std::string& endpoint = "", cpr::Response* pResponse = nullptr);
+    bool sendRequest(uint8_t method, 
+                    const std::string& endpoint, 
+                    cpr::Payload &&payload = {}, 
+                    cpr::Response* pResponse = nullptr);
+
+    bool sendRequest(uint8_t method, 
+                    const std::string& endpoint, 
+                    cpr::Payload &payload,
+                    cpr::Response* pResponse = nullptr);
     //Фукнция формирования запроса(пакета):
     //для команды создания нового пользователя системы ("ru")
     //
