@@ -59,6 +59,9 @@ bool ioteyeApi::sendRequest(uint8_t method,
         debugMessage("Error: ");
         debugMessage(r->error.message);
         NEWLINE
+        debugMessage("Response: ");
+        debugMessage(r->text);
+        NEWLINE
 
         if (pResponse == nullptr)
             delete r;
@@ -130,6 +133,9 @@ bool ioteyeApi::sendRequest(uint8_t method,
         NEWLINE
         debugMessage("Error: ");
         debugMessage(r->error.message);
+        NEWLINE
+        debugMessage("Response: ");
+        debugMessage(r->text);
         NEWLINE
 
         if (pResponse == nullptr)
