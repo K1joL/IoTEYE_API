@@ -187,10 +187,8 @@ bool ioteyeApi::getDeviceStatus(const std::string &devName)
     }
     std::string endpoint{s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_DEVICE;
-    endpoint += '/';
-    endpoint += std::to_string(device->second);
-    endpoint += "/ds";
+    endpoint += s_ENDPOINT_DEVICES;
+    endpoint += '/' + std::to_string(device->second) + "/ds";
     cpr::Response response{};
 
     bool status = false;
@@ -230,7 +228,7 @@ bool ioteyeApi::registerNewDevice(const std::string &devName)
 
     std::string endpoint{s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_DEVICE;
+    endpoint += s_ENDPOINT_DEVICES;
 
     cpr::Response response{};
     if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p, &response))
@@ -313,8 +311,9 @@ std::string ioteyeApi::getVirtualPin(const std::string &pinNumber)
     std::string endpoint{s_ENDPOINT_USERS};
     endpoint += s_ENDPOINT_USERID;
     endpoint += s_ENDPOINT_PINS;
+    endpoint += '/' + pinNumber + "/pv";
 
-    if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p, &res))
+    if (!ioteyeApi::sendRequest(ioteyeApi::GET, endpoint, p, &res))
         return getValue(res.text, "PinValue");
     else
     {
@@ -354,5 +353,5 @@ void setPinsEndpoint(const std::string &pinsEndpoint)
 
 void setDeviceEndpoint(const std::string &deviceEndpoint)
 {
-    s_ENDPOINT_DEVICE = deviceEndpoint;
+    s_ENDPOINT_DEVICES = deviceEndpoint;
 }

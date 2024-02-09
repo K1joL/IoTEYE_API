@@ -17,7 +17,7 @@ static std::string s_SERVER_URL = {"127.0.0.1"};
 static std::string s_SERVER_PORT = {"8081"};
 static std::string s_ENDPOINT_USERS = {"/user"};
 static std::string s_ENDPOINT_PINS = {"/pins"};
-static std::string s_ENDPOINT_DEVICE = {"/devices"};
+static std::string s_ENDPOINT_DEVICES = {"/devices"};
 
 #warning Before use requests you need to register user with RegisterUser() function
 static std::string G_USERID{};
