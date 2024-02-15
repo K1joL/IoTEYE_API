@@ -103,7 +103,7 @@ namespace ioteyeApi
     bool getDeviceStatus(const std::string &devName);
     // Фукнция формирования запроса(пакета):
     //  для команды обновления значения пина ("up")
-    bool updateVirtualPin(const std::string &pinNumber, const std::string &value);
+    bool writeVirtualPin(const std::string &pinNumber, const std::string &value);
     // Фукнция формирования запроса(пакета):
     //  для команды удаления пина ("dp")
     bool deleteVirtualPin(const std::string &pinNumber);

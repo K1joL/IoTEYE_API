@@ -270,7 +270,7 @@ bool ioteyeApi::createVirtualPin(const std::string &pinNumber, const std::string
     return true;
 }
 
-bool ioteyeApi::updateVirtualPin(const std::string &pinNumber, const std::string &value)
+bool ioteyeApi::writeVirtualPin(const std::string &pinNumber, const std::string &value)
 {
     cpr::Payload p{{"userID", G_USERID}};
     p.Add({"cmd", "up"});
