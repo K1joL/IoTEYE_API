@@ -341,17 +341,17 @@ void ioteyeApi::setServerPort(const std::string &serverPort)
     s_SERVER_PORT = serverPort;
 }
 
-void setUsersEndpoint(const std::string &usersEndpoint)
+void ioteyeApi::setUsersEndpoint(const std::string &usersEndpoint)
 {
     s_ENDPOINT_USERS = usersEndpoint;
 }
 
-void setPinsEndpoint(const std::string &pinsEndpoint)
+void ioteyeApi::setPinsEndpoint(const std::string &pinsEndpoint)
 {
     s_ENDPOINT_PINS = pinsEndpoint;
 }
 
-void setDeviceEndpoint(const std::string &deviceEndpoint)
+void ioteyeApi::setDeviceEndpoint(const std::string &deviceEndpoint)
 {
     s_ENDPOINT_DEVICES = deviceEndpoint;
 }
