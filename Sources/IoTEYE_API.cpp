@@ -1,15 +1,16 @@
 #include "../Headers/IoTEYE_API.h"
 // #include "IoTEYE_API.h"
+using namespace IoTeyeDebug;
 
-bool ioteyeApi::sendRequest(uint8_t method,
+uint16_t IoTeye::sendRequest(uint8_t method,
                             const std::string &endpoint,
                             cpr::Payload &&payload,
                             cpr::Response *pResponse)
 {
     // Формируем url для доступа к нужному эндпоинту
-    std::string url = s_SERVER_URL;
+    std::string url = m_serverHost;
     url += ':';
-    url += s_SERVER_PORT;
+    url += m_serverPort;
 
     if (!endpoint.empty())
         url += endpoint;
@@ -42,16 +43,17 @@ bool ioteyeApi::sendRequest(uint8_t method,
     default:
         debugMessage("Error: unknown method!");
         NEWLINE
-        return true;
+        return 0;
         break;
     }
 
     // Если получен не 200, то выводим ошибку
-    if (r->status_code != cpr::status::HTTP_OK &&
-        r->status_code != cpr::status::HTTP_CREATED)
+    uint16_t code = r->status_code;
+    if (code != cpr::status::HTTP_OK &&
+        code != cpr::status::HTTP_CREATED)
     {
         debugMessage("Error code: ");
-        debugMessage(r->status_code);
+        debugMessage(code);
         NEWLINE
         debugMessage("Error cpr code: ");
         debugMessage(static_cast<uint16_t>(r->error.code));
@@ -62,10 +64,10 @@ bool ioteyeApi::sendRequest(uint8_t method,
         debugMessage("Response: ");
         debugMessage(r->text);
         NEWLINE
-
+        
         if (pResponse == nullptr)
             delete r;
-        return true;
+        return code;
     }
     debugMessage("Response: ");
     debugMessage(r->text);
@@ -74,17 +76,17 @@ bool ioteyeApi::sendRequest(uint8_t method,
     if (pResponse == nullptr)
         delete r;
 
-    return false;
+    return code;
 }
-bool ioteyeApi::sendRequest(uint8_t method,
+uint16_t IoTeye::sendRequest(uint8_t method,
                             const std::string &endpoint,
                             cpr::Payload &payload,
                             cpr::Response *pResponse)
 {
     // Формируем url для доступа к нужному эндпоинту
-    std::string url = s_SERVER_URL;
+    std::string url = m_serverHost;
     url += ':';
-    url += s_SERVER_PORT;
+    url += m_serverPort;
 
     if (!endpoint.empty())
         url += endpoint;
@@ -117,16 +119,17 @@ bool ioteyeApi::sendRequest(uint8_t method,
     default:
         debugMessage("Error: unknown method!");
         NEWLINE
-        return true;
+        return 0;
         break;
     }
 
     // Если получен не 200, то выводим ошибку
-    if (r->status_code != cpr::status::HTTP_OK &&
-        r->status_code != cpr::status::HTTP_CREATED)
+    uint16_t code = r->status_code;
+    if (code != cpr::status::HTTP_OK &&
+        code != cpr::status::HTTP_CREATED)
     {
         debugMessage("Error code: ");
-        debugMessage(r->status_code);
+        debugMessage(code);
         NEWLINE
         debugMessage("Error cpr code: ");
         debugMessage(static_cast<uint16_t>(r->error.code));
@@ -140,7 +143,7 @@ bool ioteyeApi::sendRequest(uint8_t method,
 
         if (pResponse == nullptr)
             delete r;
-        return true;
+        return code;
     }
     debugMessage("Response: ");
     debugMessage(r->text);
@@ -149,171 +152,109 @@ bool ioteyeApi::sendRequest(uint8_t method,
     if (pResponse == nullptr)
         delete r;
 
-    return false;
+    return code;
 }
 
-std::string ioteyeApi::registerNewUser(const std::string &customUserID)
+std::string IoTeye::registerNewDevice()
 {
-    cpr::Payload p{{"cmd", "ru"}};
-    if (customUserID != "")
-        p.Add({"customID", customUserID});
+    cpr::Payload p{{"cmd", "rd"}};
+    std::string endpoint{m_endpointDevices};
 
-    std::string endpoint{s_ENDPOINT_USERS};
     cpr::Response response{};
-    if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p, &response))
+    std::string token{};
+    if (!IoTeye::sendRequest(IoTeye::POST, endpoint, p, &response))
     {
-        G_USERID = (getValue(response.text, "userID"));
-        s_ENDPOINT_USERID = '/' + G_USERID;
-
-        debugMessage(G_USERID);
+        token = getValue(response.text, "token");
+        debugMessage("Added succesully! token: ");
+        debugMessage(token);
         NEWLINE
-        return G_USERID;
+        return token;
     }
-    return "";
+    return token;
 }
 
-bool ioteyeApi::getDeviceStatus(const std::string &devName)
+uint16_t IoTeye::getDeviceStatus(const std::string &token)
 {
-    cpr::Payload p{};
-    p.Add({"userID", G_USERID});
-    p.Add({"cmd", "ds"});
-
-    auto device = s_devices.find(devName);
-    if (device == s_devices.end())
-    {
-        debugMessage("Device with this name doesn`t exists!");
-        NEWLINE
-        return true;
-    }
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_DEVICES;
-    endpoint += '/' + std::to_string(device->second) + "/ds";
+    std::string endpoint{m_endpointDevices};
+    endpoint += '/' + token;
+    endpoint += "/ds";
     cpr::Response response{};
 
-    bool status = false;
-    if (!ioteyeApi::sendRequest(ioteyeApi::GET, endpoint, p, &response))
+    bool status = 0;
+    if (!IoTeye::sendRequest(IoTeye::GET, endpoint, cpr::Payload{}, &response))
     {
-        status = (getValue(response.text, "devStatus")[0] == '0') ? false : true;
+        status = (getValue(response.text, "devStatus")[0] + 48);
 
-        debugMessage("Device with name: ");
-        debugMessage(devName);
-        debugMessage(" is ");
+        debugMessage("Device is ");
         debugMessage(((status) ? "Online" : "Offline!"));
         NEWLINE
-
-        s_devicesStatus.at(devName) = std::stoi(getValue(response.text, "devStatus"));
-
-        return false;
+        return status;
     }
     debugMessage("Something went wrong!");
     NEWLINE
 
-    return true;
+    return response.status_code;
 }
 
-bool ioteyeApi::registerNewDevice(const std::string &devName)
-{
-    auto device = s_devices.find(devName);
-    if (device != s_devices.end())
-    {
-        debugMessage("Device with this name already exist!");
-        NEWLINE
-
-        return true;
-    }
-    cpr::Payload p{};
-    p.Add({"userID", G_USERID});
-    p.Add({"cmd", "rd"});
-
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_DEVICES;
-
-    cpr::Response response{};
-    if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p, &response))
-    {
-        uint64_t devID = std::stoul(getValue(response.text, "devID"));
-        s_devices.emplace(devName, devID);
-        s_devicesStatus.emplace(devName, false);
-
-        debugMessage("Device with name: ");
-        debugMessage(devName);
-        debugMessage(" added succesully! devID: ");
-        debugMessage(devID);
-        NEWLINE
-
-        return false;
-    }
-    return true;
-}
-
-bool ioteyeApi::createVirtualPin(const std::string &pinNumber, const std::string &dataType, const std::string &defaultData)
+uint16_t IoTeye::createVirtualPin(const std::string &token, const std::string &pinNumber, const std::string &dataType, const std::string &defaultData)
 {
     cpr::Payload p{};
-    p.Add({"userID", G_USERID});
-
+    p.Add({"token", token});
     p.Add({"cmd", "cp"});
     p.Add({"pinNumber", pinNumber});
     p.Add({"dataType", dataType});
     p.Add({"value", defaultData});
 
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_PINS;
+    std::string endpoint{m_endpointDevices};
+    endpoint += '/' + token;
+    endpoint += m_endpointPins;
 
     debugMessage(endpoint);
     NEWLINE
-
-    if (!ioteyeApi::sendRequest(ioteyeApi::POST, endpoint, p))
-        return false;
-    return true;
+    
+    return IoTeye::sendRequest(IoTeye::POST, endpoint, p);
 }
 
-bool ioteyeApi::writeVirtualPin(const std::string &pinNumber, const std::string &value)
+uint16_t IoTeye::writeVirtualPin(const std::string &token, const std::string &pinNumber, const std::string &value)
 {
-    cpr::Payload p{{"userID", G_USERID}};
+    cpr::Payload p{{"token", token}};
     p.Add({"cmd", "up"});
     p.Add({"pinNumber", pinNumber});
     p.Add({"value", value});
 
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_PINS;
+    std::string endpoint{m_endpointDevices};
+    endpoint += '/' + token;
+    endpoint += m_endpointPins;
 
-    if (!ioteyeApi::sendRequest(ioteyeApi::PUT, endpoint, p))
-        return false;
-    return true;
+    return IoTeye::sendRequest(IoTeye::PUT, endpoint, p);
 }
 
-bool ioteyeApi::deleteVirtualPin(const std::string &pinNumber)
+uint16_t IoTeye::deleteVirtualPin(const std::string &token, const std::string &pinNumber)
 {
-    cpr::Payload p{{"userID", G_USERID}};
+    cpr::Payload p{{"token", token}};
     p.Add({"cmd", "dp"});
     p.Add({"pinNumber", pinNumber});
 
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_PINS;
+    std::string endpoint{m_endpointDevices};
+    endpoint += '/' + token;
+    endpoint += m_endpointPins;
 
-    if (!ioteyeApi::sendRequest(ioteyeApi::DELETE, endpoint, p))
-        return false;
-    return true;
+    return IoTeye::sendRequest(IoTeye::DELETE, endpoint, p);
 }
 
-std::string ioteyeApi::getVirtualPin(const std::string &pinNumber)
+std::string IoTeye::getVirtualPin(const std::string &token, const std::string &pinNumber)
 {
     cpr::Response res{};
-    cpr::Payload p{{"userID", G_USERID}};
+    cpr::Payload p{{"token", token}};
     p.Add({"cmd", "pv"});
     p.Add({"pinNumber", pinNumber});
 
-    std::string endpoint{s_ENDPOINT_USERS};
-    endpoint += s_ENDPOINT_USERID;
-    endpoint += s_ENDPOINT_PINS;
+    std::string endpoint{m_endpointDevices};
+    endpoint += '/'+ token;
+    endpoint += m_endpointPins;
     endpoint += '/' + pinNumber + "/pv";
 
-    if (!ioteyeApi::sendRequest(ioteyeApi::GET, endpoint, p, &res))
+    if (!IoTeye::sendRequest(IoTeye::GET, endpoint, p, &res))
         return getValue(res.text, "PinValue");
     else
     {
@@ -322,7 +263,7 @@ std::string ioteyeApi::getVirtualPin(const std::string &pinNumber)
     }
 }
 
-std::string ioteyeApi::getValue(const std::string &responseText, const std::string &key)
+std::string IoTeye::getValue(const std::string &responseText, const std::string &key)
 {
     std::string value{};
 
@@ -331,27 +272,3 @@ std::string ioteyeApi::getValue(const std::string &responseText, const std::stri
     return value;
 }
 
-void ioteyeApi::setServerUrl(const std::string &serverUrl)
-{
-    s_SERVER_URL = serverUrl;
-}
-
-void ioteyeApi::setServerPort(const std::string &serverPort)
-{
-    s_SERVER_PORT = serverPort;
-}
-
-void ioteyeApi::setUsersEndpoint(const std::string &usersEndpoint)
-{
-    s_ENDPOINT_USERS = usersEndpoint;
-}
-
-void ioteyeApi::setPinsEndpoint(const std::string &pinsEndpoint)
-{
-    s_ENDPOINT_PINS = pinsEndpoint;
-}
-
-void ioteyeApi::setDeviceEndpoint(const std::string &deviceEndpoint)
-{
-    s_ENDPOINT_DEVICES = deviceEndpoint;
-}

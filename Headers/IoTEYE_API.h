@@ -13,36 +13,99 @@
 #include <iostream>
 #endif // !IoTeyeDEBUG
 
-static std::string s_SERVER_URL = {"127.0.0.1"};
-static std::string s_SERVER_PORT = {"8081"};
-static std::string s_ENDPOINT_USERS = {"/user"};
-static std::string s_ENDPOINT_PINS = {"/pins"};
-static std::string s_ENDPOINT_DEVICES = {"/devices"};
-
-#warning Before use requests you need to register user with RegisterUser() function
-static std::string G_USERID{};
-static std::string s_ENDPOINT_USERID{};
-
-static std::unordered_map<std::string, uint64_t> s_devices;
-static std::unordered_map<std::string, uint8_t> s_devicesStatus;
-
 /*
  *   UserID пользователь получает в ответ на регистрацию
- *
- *
- *
- *
  */
 
-/*
- *   TODO:
- *   make transfer authToken for methods
- *
- *
- *
- */
+class IoTeye
+{
+public:
+    IoTeye()
+    {
+    }
+    /*  Фукнция отправки запроса
+     *   payload - request payload
+     *   pResponse - pointer to cpr::Response if you want to get response
+     *
+     *   Returns:
+     *   false - OK
+     *   true - Error
+     */
+    uint16_t sendRequest(uint8_t method,
+                     const std::string &endpoint,
+                     cpr::Payload &&payload = {},
+                     cpr::Response *pResponse = nullptr);
 
-namespace ioteyeApi
+    uint16_t sendRequest(uint8_t method,
+                     const std::string &endpoint,
+                     cpr::Payload &payload,
+                     cpr::Response *pResponse = nullptr);
+
+    // Фукнция формирования запроса(пакета):
+    // для команды создания нового устройства пользователя ("rd")
+    std::string registerNewDevice();
+    // Фукнция формирования запроса(пакета):
+    // для команды создания виртуального пина ("cp")
+    uint16_t createVirtualPin(const std::string &token, const std::string &pinNumber, const std::string &dataType, const std::string &defaultData);
+    // Фукнция формирования запроса(пакета):
+    // для команды получения статуса девайса ("ds")
+    //
+    //   Returns:
+    //   true - if something went wrong
+    //   false - if request successfully processed
+    //   update status of s_devicesStatus.at(devName)
+    //
+    uint16_t getDeviceStatus(const std::string &token);
+    // Фукнция формирования запроса(пакета):
+    //  для команды обновления значения пина ("up")
+    uint16_t writeVirtualPin(const std::string &token, const std::string &pinNumber, const std::string &value);
+    // Фукнция формирования запроса(пакета):
+    //  для команды удаления пина ("dp")
+    uint16_t deleteVirtualPin(const std::string &token, const std::string &pinNumber);
+    // Фукнция формирования запроса(пакета):
+    //  для команды получения данных с пина ("pv")
+    std::string getVirtualPin(const std::string &token, const std::string &pinNumber);
+
+    // Функция для получения значения пина из ответа
+    std::string getValue(const std::string &responseText, const std::string &key = "");
+
+    // Функции для настройки пользоватлеьских эндопоинтов
+    inline void setServerHost(const std::string &serverHost)
+    {
+        m_serverHost = serverHost;
+    }
+
+    inline void setServerPort(const std::string &serverPort)
+    {
+        m_serverPort = serverPort;
+    }
+
+    inline void setPinsEndpoint(const std::string &pinsEndpoint)
+    {
+        m_endpointPins = pinsEndpoint;
+    }
+
+    inline void setDevicesEndpoint(const std::string &devicesEndpoint)
+    {
+        m_endpointDevices = devicesEndpoint;
+    }
+
+    enum HTTP_METHOD
+    {
+        GET,
+        POST,
+        PUT,
+        DELETE
+    };
+
+private:
+    std::string m_serverHost = {"127.0.0.1"};
+    std::string m_serverPort = {"8081"};
+    std::string m_endpointPins = {"/pins"};
+    std::string m_endpointDevices = {"/devices"};
+};
+
+namespace IoTeyeDebug
 {
 
     template <typename T>
@@ -61,73 +124,23 @@ namespace ioteyeApi
 #endif // !IoTeyeDEBUG
     }
 #define NEWLINE debugMessage("\n");
-
-    /*  Фукнция отправки запроса
-     *   payload - request payload
-     *   pResponse - pointer to cpr::Response if you want to get response
-     *
-     *   Returns:
-     *   false - OK
-     *   true - Error
-     */
-    bool sendRequest(uint8_t method,
-                     const std::string &endpoint,
-                     cpr::Payload &&payload = {},
-                     cpr::Response *pResponse = nullptr);
-
-    bool sendRequest(uint8_t method,
-                     const std::string &endpoint,
-                     cpr::Payload &payload,
-                     cpr::Response *pResponse = nullptr);
-    // Фукнция формирования запроса(пакета):
-    // для команды создания нового пользователя системы ("ru")
-    //
-    //  Returns:
-    //  - Empty string if something went wrong
-    //  - Your user ID
-    std::string registerNewUser(const std::string &customUserID = "");
-    // Фукнция формирования запроса(пакета):
-    // для команды создания нового устройства пользователя ("rd")
-    bool registerNewDevice(const std::string &devName);
-    // Фукнция формирования запроса(пакета):
-    // для команды создания виртуального пина ("cp")
-    bool createVirtualPin(const std::string &pinNumber, const std::string &dataType, const std::string &defaultData);
-    // Фукнция формирования запроса(пакета):
-    // для команды получения статуса девайса ("ds")
-    //
-    //   Returns:
-    //   true - if something went wrong
-    //   false - if request successfully processed
-    //   update status of s_devicesStatus.at(devName)
-    //
-    bool getDeviceStatus(const std::string &devName);
-    // Фукнция формирования запроса(пакета):
-    //  для команды обновления значения пина ("up")
-    bool writeVirtualPin(const std::string &pinNumber, const std::string &value);
-    // Фукнция формирования запроса(пакета):
-    //  для команды удаления пина ("dp")
-    bool deleteVirtualPin(const std::string &pinNumber);
-    // Фукнция формирования запроса(пакета):
-    //  для команды получения данных с пина ("pv")
-    std::string getVirtualPin(const std::string &pinNumber);
-
-    // Функция для получения значения пина из ответа
-    std::string getValue(const std::string &responseText, const std::string &key = "");
-
-    // Функции для настройки пользоватлеьских эндопоинтов
-    inline void setServerUrl(const std::string &serverUrl);
-    inline void setServerPort(const std::string &serverPort);
-    inline void setUsersEndpoint(const std::string &userEndpoint);
-    inline void setPinsEndpoint(const std::string &pinsEndpoint);
-    inline void setDeviceEndpoint(const std::string &deviceEndpoint);
-
-    enum HTTP_METHOD
+    template <typename T>
+    void debugMessageln(const T &&mes)
     {
-        GET,
-        POST,
-        PUT,
-        DELETE
-    };
+#ifdef IoTeyeDEBUG
+        std::cout << mes;
+        NEWLINE
+#endif // !IoTeyeDEBUG
+    }
+
+    template <typename T>
+    void debugMessageln(const T &mes)
+    {
+#ifdef IoTeyeDEBUG
+        std::cout << mes;
+        NEWLINE
+#endif // !IoTeyeDEBUG
+    }
 }
 
 #endif //! IoTEYE_API_H
