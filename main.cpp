@@ -1,28 +1,21 @@
 const char* USERID = "";
 #include "Headers/IoTEYE_API.h"
-
+#include <iostream>
 #include <thread>
+using namespace std;
 
 int main()
 {
-    // Передаем номер метода POST и сформированный пакет
-    // USERID = ioteyeApi::RegisterNewUser("kijol").c_str();
-    std::cout << ioteyeApi::RegisterNewUser("kijol") << std::endl;
-    // ioteyeApi::CreateVirtualPin("0", "int", "199");
-    // std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
-    // std::cout << ioteyeApi::UpdateVirtualPin("0","1") << std::endl;
-    // std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
-    // std::cout << ioteyeApi::DeleteVirtualPin("0") << std::endl;
-    // std::cout << ioteyeApi::GetVirtualPin("0") << std::endl;
-    ioteyeApi::RegisterNewDevice("device1");
-    ioteyeApi::GetDeviceStatus("device1");
-    cpr::Payload p{{"cmd","us"}};
-    char key;
-    while(true)
-    {
+    IoTeye eye;
+    eye.setServerHost("10.10.90.32");
+    // std::string token{};
+    // token = eye.registerNewDevice();
+    // eye.createVirtualPin(token, "1", "int", "0");
+    // std::cout << eye.getVirtualPin(token, "1") << std::endl;
+    cpr::Payload p{{"cmd", "rd"}};
+    cpr::Response r2;
+    eye.sendRequest(IoTeye::POST, "/devices", p ,&r2);
+    eye.sendRequest(IoTeye::GET, "/devices/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXUyJ9.eyJkZXZpY2VJRCI6IjEifQ.3O3RIiMFsE2GwmA4FqpHU9rBSVkKDpjKpFta22yxSy4/ds", p ,&r2);
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(4));
-        ioteyeApi::SendRequest(ioteyeApi::GET, p, "/user/kijol/devices/1/us");
-    }
     return 0;
 }
