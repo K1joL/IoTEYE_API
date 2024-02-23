@@ -1,6 +1,5 @@
 #include "../Headers/IoTEYE_API.h"
-#include "IoTEYE_API.h"
-// #include "IoTEYE_API.h"
+
 using namespace IoTeyeDebug;
 
 uint16_t IoTeye::sendRequest(uint8_t method,

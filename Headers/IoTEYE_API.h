@@ -35,12 +35,13 @@ public:
                          cpr::Payload &payload);
 
     //  HTTP Requests
+
     /// @brief HTTP Request to register new device
     /// @return token
     std::string registerNewDevice();
     /// @brief HTTP Request to get device status with a token
     /// @param token 
-    /// @return Device status if request is successful, HTTP Code
+    /// @return Device status if request is successful, HTTP Code if unsuccessful
     uint16_t getDeviceStatus(const std::string &token);
     /// @brief HTTP Request to delete device with a token
     /// @param token 
