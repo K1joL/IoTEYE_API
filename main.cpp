@@ -7,15 +7,24 @@ using namespace std;
 int main()
 {
     IoTeye eye;
-    eye.setServerHost("10.10.90.32");
-    // std::string token{};
-    // token = eye.registerNewDevice();
-    // eye.createVirtualPin(token, "1", "int", "0");
-    // std::cout << eye.getVirtualPin(token, "1") << std::endl;
-    cpr::Payload p{{"cmd", "rd"}};
-    cpr::Response r2;
-    eye.sendRequest(IoTeye::POST, "/devices", p ,&r2);
-    eye.sendRequest(IoTeye::GET, "/devices/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXUyJ9.eyJkZXZpY2VJRCI6IjEifQ.3O3RIiMFsE2GwmA4FqpHU9rBSVkKDpjKpFta22yxSy4/ds", p ,&r2);
-        
+    // eye.setServerHost("10.10.90.32");
+    std::string token{};
+    token = eye.registerNewDevice();
+    eye.createVirtualPin(token, "1", "int", "0");
+    eye.getVirtualPin(token, "1");
+    eye.writeVirtualPin(token, "1", "1337");
+    eye.getVirtualPin(token, "1");
+    eye.deleteVirtualPin(token, "1");
+    eye.getDeviceStatus(token);
+    eye.deleteDevice(token);
+    // cpr::Payload p{{"cmd", "cp"}};
+    // p.Add({"token", token});
+    // p.Add({"pinNumber", "1"});
+    // p.Add({"dataType", "int"});
+    // p.Add({"value", "0"});
+    // cpr::Response r2;
+    // // eye.sendRequest(IoTeye::POST, "/devices", p ,&r2);
+    // eye.sendRequest(IoTeye::POST, "/devices/pins", p ,&r2);
+
     return 0;
 }
