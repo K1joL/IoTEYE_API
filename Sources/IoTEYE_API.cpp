@@ -151,7 +151,7 @@ std::string IoTeye::getVirtualPin(const std::string &token, const std::string &p
 
     if (IoTeye::sendRequest(IoTeye::GET, endpoint, cpr::Payload{}) == cpr::status::HTTP_OK)
         return getValue(m_lastResponse.text, "PinValue");
-    return std::string();
+    return std::string("VPGetError");
 }
 
 std::string IoTeye::getValue(const std::string &responseText, const std::string &key)
