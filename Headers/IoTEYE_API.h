@@ -4,6 +4,7 @@
 #include <string>
 #include <cpr/cpr.h>
 #include <unordered_map>
+#include "IoTeyeLiterals.h"
 
 /**
  * To enable debug mode add define IoTeyeDEBUG to your CMakeLists.txt
