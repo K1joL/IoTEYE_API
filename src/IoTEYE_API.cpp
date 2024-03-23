@@ -1,4 +1,4 @@
-#include "../Headers/IoTEYE_API.h"
+#include "../include/IoTEYE_API.h"
 
 using namespace IoTeyeDebug;
 

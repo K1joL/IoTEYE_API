@@ -116,7 +116,7 @@ public:
     uint16_t sendRequest(uint8_t method,
                          const String &endpoint,
                          const ioteye::Payload &payload = {});
-    // void run();
+    void run();
     void printError();
     /// @brief HTTP Request to create virtual pin
     /// @param pinNumber 
@@ -172,10 +172,11 @@ void IoTeye::begin(const char *token,
     this->m_serverURL = m_serverHOST + ":" + m_serverPORT;
 }
 
-// void IoTeye::run()
-// {
-//     // delay(100);
-// }
+void IoTeye::run()
+{
+    updateDeviceStatus();
+    delay(50);
+}
 
 void IoTeye::printError()
 {
