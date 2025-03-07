@@ -1,0 +1,6 @@
+#ifndef IOTEYE_CONFIG_HPP
+#define IOTEYE_CONFIG_HPP
+
+
+
+#endif  // IOTEYE_CONFIG_HPP
