@@ -24,6 +24,8 @@
 #include "ioteye_debug.hpp"
 namespace ioteye {
 void DebugLogger::log(LogLevel level, const String& message) {
+    if(m_serial == nullptr)
+        return;
     String levelStr;
     switch (level) {
         case INFO:
