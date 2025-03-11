@@ -1,5 +1,5 @@
 // include specific for your board file
-#include <IoTeyeESP8266.hpp>
+#include <IoTeyeEsp8266.hpp>
 // Define your credentials
 const char* token = "****.****.****";
 const char* ssid = "****";

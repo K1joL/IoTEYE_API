@@ -33,7 +33,7 @@ Below is an example of how to use the `IoTeye API Library` to set up a simple Io
 
 ```cpp ESP8266_update_value.ino
 // include specific for your board file
-#include <IoTeyeESP8266.hpp>
+#include <IoTeyeEsp8266.hpp>
 // Define your credentials
 const char* token = "****.****.****";
 const char* ssid = "****";
