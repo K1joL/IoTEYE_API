@@ -67,7 +67,6 @@ public:
     IoTeye& setServerUrl(const String& url);
     IoTeye& setServerUrl(const String& host, int port);
     IoTeye& setLogger(DebugLogger* logger);
-    IoTeye& setLogger(HardwareSerial* serial);
     IoTeye& setCommunicationInterface(ioteye::IIoTeyeCommunication *commInterface);
     void run(unsigned long updateInterval = 250);
 

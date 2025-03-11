@@ -24,8 +24,6 @@
 #include "IoTeye.hpp"
 
 IoTeye::~IoTeye() {
-    if (m_logger != nullptr)
-        delete m_logger;
 }
 
 IoTeye &IoTeye::setToken(const String &token) {
@@ -46,12 +44,6 @@ IoTeye &IoTeye::setServerUrl(const String &host, int port) {
 }
 
 IoTeye &IoTeye::setLogger(DebugLogger *logger) {
-    m_logger = logger;
-    return *this;
-}
-
-IoTeye &IoTeye::setLogger(HardwareSerial *serial) {
-    DebugLogger *logger = new DebugLogger(serial);
     m_logger = logger;
     return *this;
 }
