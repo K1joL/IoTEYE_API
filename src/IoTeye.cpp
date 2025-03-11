@@ -84,8 +84,7 @@ HttpCode IoTeye::createVirtualPin(const String &pinNumber,
 
 HttpCode IoTeye::createVirtualPin(const String &pinNumber,
                                   const String &dataType, int defaultData) {
-    log(,
-        "Creating virtual pin with default data (int): " + String(defaultData));
+    log("Creating virtual pin with default data (int): " + String(defaultData));
     return createVirtualPin(pinNumber, dataType, String(defaultData));
 }
 
