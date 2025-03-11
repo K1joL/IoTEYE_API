@@ -44,13 +44,14 @@ const char* ip = "localhost:8080";
 void setup() {
   // Start the serial communication
   Serial.begin(115200);
-
+  // LibLogger.init(&Serial);  // if you needed to Debug something internal Step (1)
   // Set your options
   IoTeyeSettings.setSSID(ssid)
     .setPassword(pass)
     .setToken(token)
     .setServerUrl(ip)
-  //.setLogger(&Serial) // if you needed to Debug something internal
+    // .setLogger(&LibLogger) // if you needed to Debug something internal Step (2)
+    // .setCommunicationLogger(&LibLogger) // if you needed to Debug something internal Step (3) (optional)
     .begin(); // After begin() you can use 'iotEye' object
 
   // Create a virtual pin
@@ -70,9 +71,9 @@ void loop() {
   Serial.println("Virtual Pin Value: " + value);
 
   // Write a value to the virtual pin
-  iotEye.writeVirtualPin(VP(1), value + 10);          // for int
-  // iotEye.writeVirtualPin(VP(1), value + "10");     // for string
-  // iotEye.writeVirtualPin(VP(1), value + 10.0);     // for double
+  iotEye.writeVirtualPin(VP(1), String(value.toInt() + 10));          // for int
+  // iotEye.writeVirtualPin(VP(1), value + "10");                     // for string
+  // iotEye.writeVirtualPin(VP(1), String(value.toFloat() + 10));     // for double
 
   // Don't use delays if you want everything to work properly
   // delay(10000);
