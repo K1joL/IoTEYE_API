@@ -27,11 +27,14 @@
 #include "ioteye_types.hpp"
 
 namespace ioteye {
+class DebugLogger;
+
 class IIoTeyeCommunication {
 public:
     virtual ~IIoTeyeCommunication() = default;
 
     virtual Response sendData(HttpMethod method, const String& url, const String& data = String()) = 0;
+    virtual void setLogger(DebugLogger *logger) = 0;
 };
 }  // namespace ioteye
 #endif  // IOTEYE_COMMUNICATION_HPP

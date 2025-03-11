@@ -45,8 +45,13 @@ IIoTeyeBuilder& IIoTeyeBuilder::setServerUrl(const String& serverUrl) {
     return *this;
 }
 
-IIoTeyeBuilder& IIoTeyeBuilder::setLogger(HardwareSerial *serial) {
-    m_serial = serial;
+IIoTeyeBuilder& IIoTeyeBuilder::setLogger(DebugLogger *logger) {
+    m_logger = logger;
+    return *this;
+}
+
+IIoTeyeBuilder& IIoTeyeBuilder::setCommunicationLogger(DebugLogger* logger) {
+    m_commLogger = logger;
     return *this;
 }
 

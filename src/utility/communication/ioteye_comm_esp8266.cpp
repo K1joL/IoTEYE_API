@@ -21,16 +21,16 @@
 # SOFTWARE.
 */
 
-#include "ioteye_esp8266.hpp"
+#include "ioteye_comm_esp8266.hpp"
 
 namespace ioteye {
 ESP8266Communincation::ESP8266Communincation() {
 }
 
 ESP8266Communincation::~ESP8266Communincation() {
-    if(!m_httpClient.connected())
+    if (!m_httpClient.connected())
         m_httpClient.end();
-    if(m_wifiClient.connected() || (m_wifiClient.available() > 0))
+    if (m_wifiClient.connected() || (m_wifiClient.available() > 0))
         m_wifiClient.stop();
 }
 
@@ -62,23 +62,31 @@ Response ESP8266Communincation::sendData(HttpMethod method, const String& url,
         response.statusCode = responseCode;
         return response;
     }
-    LibLogger.log(DebugLogger::INFO, "client end");
-    LibLogger.log(DebugLogger::INFO, String(responseCode));
-    LibLogger.log(DebugLogger::INFO, m_httpClient.getString());
+    log(DebugLogger::INFO, "Comm: " + String(responseCode));
+    log(DebugLogger::INFO, "Comm: " + m_httpClient.getString());
     response.body = m_httpClient.getString();
     response.statusCode = HttpCode(responseCode);
     m_httpClient.end();
     return response;
 }
+void ESP8266Communincation::setLogger(DebugLogger* logger) {
+    if (logger != nullptr)
+        m_logger = logger;
+}
 void ESP8266Communincation::begin(const String& ssid, const String& password) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
-    LibLogger.log(DebugLogger::INFO, "Connecting to WiFi...");
+    log(DebugLogger::INFO, "Connecting to WiFi...");
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
-        LibLogger.log(DebugLogger::INFO, ".");
+        log(DebugLogger::INFO, ".");
     }
-    LibLogger.log(DebugLogger::INFO, "\nConnected to WiFi!");
+    log(DebugLogger::INFO, "\nConnected to WiFi!");
+}
+void ESP8266Communincation::log(DebugLogger::LogLevel logLevel,
+                                const String& message) {
+    if(m_logger != nullptr)
+        m_logger->log(logLevel, message);
 }
 }  // namespace ioteye
 

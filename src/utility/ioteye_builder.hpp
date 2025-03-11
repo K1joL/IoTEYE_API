@@ -39,14 +39,16 @@ public:
     IIoTeyeBuilder &setPassword(const String &pass);
     IIoTeyeBuilder &setToken(const String &token);
     IIoTeyeBuilder &setServerUrl(const String &serverUrl);
-    IIoTeyeBuilder &setLogger(HardwareSerial *serial);
+    IIoTeyeBuilder &setLogger(DebugLogger *logger);
+    IIoTeyeBuilder &setCommunicationLogger(DebugLogger *logger);
 
 protected:
     String m_ssid;
     String m_password;
     String m_token;
     String m_serverUrl;
-    HardwareSerial *m_serial = nullptr;
+    DebugLogger *m_logger = nullptr;
+    DebugLogger *m_commLogger = nullptr;
 };
 }  // namespace ioteye
 

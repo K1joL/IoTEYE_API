@@ -30,7 +30,7 @@ Please check your Tools->Board setting.
 #endif
 
 #include "IoTeye.hpp"
-#include "utility/communication/ioteye_esp8266.hpp"
+#include "utility/communication/ioteye_comm_esp8266.hpp"
 #include "utility/ioteye_builder.hpp"
 
 namespace ioteye {
