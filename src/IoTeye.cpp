@@ -78,23 +78,20 @@ HttpCode IoTeye::createVirtualPin(const String &pinNumber,
     endpoint += '/' + defaultData;
     endpoint += CREATE_PIN;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Creating virtual pin with endpoint: " + endpoint);
+    log("Creating virtual pin with endpoint: " + endpoint);
     return sendRequest(HttpMethod::POST, endpoint).statusCode;
 }
 
 HttpCode IoTeye::createVirtualPin(const String &pinNumber,
                                   const String &dataType, int defaultData) {
-    m_logger->log(
-        DebugLogger::INFO,
+    log(,
         "Creating virtual pin with default data (int): " + String(defaultData));
     return createVirtualPin(pinNumber, dataType, String(defaultData));
 }
 
 HttpCode IoTeye::createVirtualPin(const String &pinNumber,
                                   const String &dataType, double defaultData) {
-    m_logger->log(DebugLogger::INFO,
-                  "Creating virtual pin with default data (double): " +
+    log("Creating virtual pin with default data (double): " +
                       String(defaultData));
     return createVirtualPin(pinNumber, dataType, String(defaultData));
 }
@@ -108,8 +105,7 @@ HttpCode IoTeye::writeVirtualPin(const String &pinNumber, const String &value) {
     endpoint += '/' + value;
     endpoint += UPDATE_PIN;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Writing virtual pin with endpoint: " + endpoint);
+    log("Writing virtual pin with endpoint: " + endpoint);
     return sendRequest(HttpMethod::PUT, endpoint).statusCode;
 }
 
@@ -121,8 +117,7 @@ HttpCode IoTeye::deleteVirtualPin(const String &pinNumber) {
     endpoint += "/" + pinNumber;
     endpoint += DELETE_PIN;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Deleting virtual pin with endpoint: " + endpoint);
+    log("Deleting virtual pin with endpoint: " + endpoint);
     return sendRequest(HttpMethod::DELETE, endpoint).statusCode;
 }
 
@@ -134,8 +129,7 @@ String IoTeye::getVirtualPin(const String &pinNumber) {
     endpoint += '/' + pinNumber;
     endpoint += GET_PIN;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Getting virtual pin with endpoint: " + endpoint);
+    log("Getting virtual pin with endpoint: " + endpoint);
     if (sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
         return extractValue(m_lastResponse.body, "PinValue");
     return String();
@@ -152,8 +146,7 @@ uint16_t IoTeye::getDeviceStatus(const String &otherToken) {
     endpoint += ENDPOINT_DEVICES;
     endpoint += "/" + m_token + DEVICE_STATUS;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Getting device status with endpoint: " + endpoint);
+    log("Getting device status with endpoint: " + endpoint);
     if (sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
         return 0;
     if (!m_lastResponse.body.isEmpty()) {
@@ -172,8 +165,7 @@ HttpCode IoTeye::updateDeviceStatus() {
     endpoint += ENDPOINT_DEVICES;
     endpoint += "/" + m_token + DEVICE_STATUS_UPDATE;
 
-    m_logger->log(DebugLogger::INFO,
-                  "Updating device status with endpoint: " + endpoint);
+    log("Updating device status with endpoint: " + endpoint);
     return sendRequest(HttpMethod::GET, endpoint).statusCode;
 }
 
@@ -183,8 +175,7 @@ HttpCode IoTeye::getLastHttpCode() {
 }
 
 String IoTeye::getLastResponse() {
-    m_logger->log(DebugLogger::INFO,
-                  "Getting last response: " + m_lastResponse.body);
+    log("Getting last response: " + m_lastResponse.body);
     return m_lastResponse.body;
 }
 
@@ -203,10 +194,9 @@ ioteye::Response IoTeye::sendRequest(HttpMethod method, const String &endpoint,
     if (payload.isEmpty())
         data = payload.GetArgsString();
 
-    m_logger->log(DebugLogger::INFO,
-                  "Sending request to URL: " + url + " with data: " + data);
+    log("Sending request to URL: " + url + " with data: " + data);
     m_lastResponse = m_commInterface->sendData(method, url, data);
-    log(m_lastResponse.body);
+    log("LastResponse: " + m_lastResponse.body);
     return m_lastResponse;
 }
 
