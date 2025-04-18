@@ -26,8 +26,6 @@
 
 #include <Arduino.h>
 
-#include <cassert>
-
 #include "utility/ioteye_communication.hpp"
 #include "utility/ioteye_config.hpp"
 #include "utility/ioteye_debug.hpp"
