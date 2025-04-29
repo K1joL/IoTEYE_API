@@ -165,7 +165,7 @@ HttpCode IoTeye::updateDeviceStatus() {
     endpoint += "/" + m_token + DEVICE_STATUS_UPDATE;
 
     log("Updating device status with endpoint: " + endpoint);
-    return sendRequest(HttpMethod::GET, endpoint).statusCode;
+    return sendRequest(HttpMethod::PUT, endpoint).statusCode;
 }
 
 HttpCode IoTeye::getLastHttpCode() {
