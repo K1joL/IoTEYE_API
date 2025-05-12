@@ -27,9 +27,13 @@ void IoTeyeBuilderEsp8266::begin() {
     ESP8266Comm.setLogger(m_commLogger);
     ESP8266Comm.begin(m_ssid, m_password);
     iotEye.setServerUrl(m_serverUrl)
-            .setToken(m_token)
             .setLogger(m_logger)
             .setCommunicationInterface(&ESP8266Comm);
+    if(m_selfInit)
+        iotEye.registerDevice();
+    else
+        iotEye.setToken(m_token);
+    iotEye.init();
 }
 }  // namespace ioteye
 ioteye::IoTeyeBuilderEsp8266 IoTeyeSettings;

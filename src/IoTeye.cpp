@@ -24,6 +24,18 @@
 #include "IoTeye.hpp"
 
 IoTeye::~IoTeye() {
+    if (m_selfRegistered) {
+        if (!deleteDevice().isSuccess())
+            log("You have to delete device with token: " + m_token +
+                " manually!");
+    }
+}
+
+void IoTeye::init() {
+    if (!m_token.isEmpty())
+        m_isReady = getDeviceStatus(m_token) < STATES::MAX_STATES;
+
+    m_preInit = false;
 }
 
 IoTeye &IoTeye::setToken(const String &token) {
@@ -91,7 +103,7 @@ HttpCode IoTeye::createVirtualPin(const String &pinNumber,
 HttpCode IoTeye::createVirtualPin(const String &pinNumber,
                                   const String &dataType, double defaultData) {
     log("Creating virtual pin with default data (double): " +
-                      String(defaultData));
+        String(defaultData));
     return createVirtualPin(pinNumber, dataType, String(defaultData));
 }
 
@@ -135,9 +147,9 @@ String IoTeye::getVirtualPin(const String &pinNumber) {
 }
 
 uint16_t IoTeye::getDeviceStatus(const String &otherToken) {
-    String token{};
+    String token;
     if (otherToken.isEmpty())
-        return 0;
+        return UINT16_MAX;
     else
         token = otherToken;
 
@@ -146,8 +158,8 @@ uint16_t IoTeye::getDeviceStatus(const String &otherToken) {
     endpoint += "/" + m_token + DEVICE_STATUS;
 
     log("Getting device status with endpoint: " + endpoint);
-    if (sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
-        return 0;
+    if (!sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
+        return UINT16_MAX;
     if (!m_lastResponse.body.isEmpty()) {
         String statusStr = extractValue(m_lastResponse.body, "devStatus");
         if (!statusStr.isEmpty()) {
@@ -168,6 +180,55 @@ HttpCode IoTeye::updateDeviceStatus() {
     return sendRequest(HttpMethod::PUT, endpoint).statusCode;
 }
 
+HttpCode IoTeye::registerDevice() {
+    if (m_selfRegistered)
+        return HttpCode::NULL_CODE;
+    String endpoint;
+    endpoint += ENDPOINT_DEVICES;
+    endpoint += REGISTER_DEVICE;
+
+    log("Registering device...");
+    sendRequest(HttpMethod::POST, endpoint);
+
+    if (m_lastResponse.statusCode.isSuccess()) {
+        if (!m_lastResponse.body.isEmpty()) {
+            m_token = extractValue(m_lastResponse.body, "token");
+            log("Device registered with token: " + m_token);
+            m_selfRegistered = true;
+        }
+    } else {
+        log("Error while registering device:" + m_lastResponse.body);
+    }
+
+    return m_lastResponse.statusCode;
+}
+
+HttpCode IoTeye::deleteDevice(const String &token) {
+    String endpoint;
+    endpoint += ENDPOINT_DEVICES;
+    endpoint += "/" + m_token + DELETE_DEVICE;
+
+    log("Deleting device with token: " + m_token);
+    sendRequest(HttpMethod::DELETE, endpoint);
+
+    if (m_lastResponse.statusCode.isSuccess())
+        log("Device deleted successfully");
+    if (m_token == token) {
+        m_token.clear();
+        m_isReady = false;
+        m_preInit = true;
+        if (m_selfRegistered)
+            m_selfRegistered = false;
+    } else
+        log("Error while deleting device:" + m_lastResponse.body);
+
+    return m_lastResponse.statusCode;
+}
+
+HttpCode IoTeye::deleteDevice() {
+    return deleteDevice(m_token);
+}
+
 HttpCode IoTeye::getLastHttpCode() {
     log("Getting last HTTP code: " + String(m_lastResponse.statusCode));
     return HttpCode(m_lastResponse.statusCode);
@@ -180,8 +241,14 @@ String IoTeye::getLastResponse() {
 
 ioteye::Response IoTeye::sendRequest(HttpMethod method, const String &endpoint,
                                      const ioteye::Payload &payload) {
-    if (!m_commInterface)
-        return {"Communication interface is not provided!", HttpCode(-1)};
+    if (!m_isReady && !m_preInit) {
+        log("IoTeye is not ready yet!");
+        return {"", HttpCode(-1)};
+    }
+    if (!m_commInterface) {
+        log("Communication interface is not provided!");
+        return {"", HttpCode(-2)};
+    }
     String url = "http://";
     url += m_serverUrl;
     if (!endpoint.isEmpty())

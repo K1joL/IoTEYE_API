@@ -58,14 +58,13 @@ public:
     IoTeye& operator=(IoTeye&& otherEye) = default;
     ~IoTeye();
 
-    void init(ioteye::IIoTeyeCommunication* commInterface) {
-        m_commInterface = commInterface;
-    }
+    void init();
     IoTeye& setToken(const String& token);
     IoTeye& setServerUrl(const String& url);
     IoTeye& setServerUrl(const String& host, int port);
     IoTeye& setLogger(DebugLogger* logger);
-    IoTeye& setCommunicationInterface(ioteye::IIoTeyeCommunication *commInterface);
+    IoTeye& setCommunicationInterface(
+        ioteye::IIoTeyeCommunication* commInterface);
     void run(unsigned long updateInterval = 250);
 
     HttpCode createVirtualPin(const String& pinNumber, const String& dataType,
@@ -77,6 +76,9 @@ public:
     HttpCode writeVirtualPin(const String& pinNumber, const String& value);
     HttpCode deleteVirtualPin(const String& pinNumber);
     HttpCode updateDeviceStatus();
+    HttpCode registerDevice();
+    HttpCode deleteDevice(const String& token);
+    HttpCode deleteDevice();
 
     // methods with return value
     uint16_t getDeviceStatus(const String& otherToken = String());
@@ -84,6 +86,9 @@ public:
     // Use this methods with above for checks
     HttpCode getLastHttpCode();
     String getLastResponse();
+
+public:
+    enum STATES { ONLINE, OFFLINE, OUTDATED, MAX_STATES };
 
 private:
     ioteye::Response sendRequest(
@@ -100,6 +105,10 @@ private:
     // Stores the last time the device status was updated
     unsigned long m_lastUpdateTime = 0;
     ioteye::DebugLogger* m_logger = nullptr;
+
+    bool m_preInit = true;
+    bool m_isReady = false;
+    bool m_selfRegistered = false;
 };
 extern IoTeye iotEye;
 #endif  // IOTEYE_HPP

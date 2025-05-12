@@ -41,8 +41,10 @@ public:
     IIoTeyeBuilder &setServerUrl(const String &serverUrl);
     IIoTeyeBuilder &setLogger(DebugLogger *logger);
     IIoTeyeBuilder &setCommunicationLogger(DebugLogger *logger);
+    IIoTeyeBuilder &setSelfInit();
 
 protected:
+    bool m_selfInit = false;
     String m_ssid;
     String m_password;
     String m_token;
