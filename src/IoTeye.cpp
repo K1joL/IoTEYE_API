@@ -206,9 +206,9 @@ HttpCode IoTeye::registerDevice() {
 HttpCode IoTeye::deleteDevice(const String &token) {
     String endpoint;
     endpoint += ENDPOINT_DEVICES;
-    endpoint += "/" + m_token + DELETE_DEVICE;
+    endpoint += "/" + token + DELETE_DEVICE;
 
-    log("Deleting device with token: " + m_token);
+    log("Deleting device with token: " + token);
     sendRequest(HttpMethod::DELETE, endpoint);
 
     if (m_lastResponse.statusCode.isSuccess())
