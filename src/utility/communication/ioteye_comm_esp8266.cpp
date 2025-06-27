@@ -34,8 +34,8 @@ ESP8266Communincation::~ESP8266Communincation() {
         m_wifiClient.stop();
 }
 
-Response ESP8266Communincation::sendData(HttpMethod method, const String& url,
-                                         const String& data) {
+Response ESP8266Communincation::sendData(HttpMethod method, const char* url,
+                                         const char* data) {
     m_httpClient.begin(m_wifiClient, url);
     m_httpClient.addHeader("Content-Type", "text/plain");
 
@@ -62,31 +62,26 @@ Response ESP8266Communincation::sendData(HttpMethod method, const String& url,
         response.statusCode = responseCode;
         return response;
     }
-    log(DebugLogger::INFO, "Comm: " + String(responseCode));
-    log(DebugLogger::INFO, "Comm: " + m_httpClient.getString());
+    m_logger.logln(LogLevel::INFO, "Comm: ", responseCode);
+    m_logger.logln(LogLevel::INFO, "Comm: ", m_httpClient.getString());
     response.body = m_httpClient.getString();
     response.statusCode = HttpCode(responseCode);
     m_httpClient.end();
     return response;
 }
-void ESP8266Communincation::setLogger(DebugLogger* logger) {
-    if (logger != nullptr)
-        m_logger = logger;
+void ESP8266Communincation::setSerial(HardwareSerial* serial) {
+    if (serial != nullptr)
+        m_logger.setSerial(serial);
 }
-void ESP8266Communincation::begin(const String& ssid, const String& password) {
+void ESP8266Communincation::begin(const char* ssid, const char* password) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
-    log(DebugLogger::INFO, "Connecting to WiFi...");
+    m_logger.logln(LogLevel::INFO, "Connecting to WiFi...");
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
-        log(DebugLogger::INFO, ".");
+        m_logger.log(LogLevel::INFO, ".");
     }
-    log(DebugLogger::INFO, "\nConnected to WiFi!");
-}
-void ESP8266Communincation::log(DebugLogger::LogLevel logLevel,
-                                const String& message) {
-    if(m_logger != nullptr)
-        m_logger->log(logLevel, message);
+    m_logger.logln(LogLevel::INFO, "Connected to WiFi!");
 }
 }  // namespace ioteye
 

@@ -27,8 +27,6 @@
 #include <Arduino.h>
 #include <WString.h>
 
-#include "ioteye_config.hpp"
-
 namespace ioteye {
 
 class PairString {

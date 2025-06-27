@@ -23,32 +23,71 @@
 
 #include "ioteye_debug.hpp"
 namespace ioteye {
-void DebugLogger::log(LogLevel level, const String& message) {
-    if(m_serial == nullptr)
-        return;
-    String levelStr;
-    switch (level) {
-        case INFO:
-            levelStr = "INFO";
-            break;
-        case WARNING:
-            levelStr = "WARNING";
-            break;
-        case ERROR:
-            levelStr = "ERROR";
-            break;
-    }
+DebugLogger::DebugLogger(HardwareSerial* serial, int baudRate) {
+    setSerial(serial, baudRate);
+}
 
-    m_serial->print("[" + getTimestamp() + "] [" + levelStr + "] ");
+void DebugLogger::setSerial(HardwareSerial* serial, int baudRate) {
+    if (serial == nullptr)
+        return;
+    m_serial = serial;
+    if (!(*m_serial))
+        m_serial->begin(baudRate);
+}
+
+void DebugLogger::setSerial(const DebugLogger& otherLogger) {
+    m_serial = otherLogger.m_serial;
+}
+
+void DebugLogger::logln(LogLevel level, const char* message) {
+    if (m_serial == nullptr)
+        return;
+    log(level, message);
     m_serial->println(message);
 }
 
-String DebugLogger::getTimestamp() {
+void DebugLogger::log(LogLevel level, const char* message) {
+    if (m_serial == nullptr)
+        return;
+    printPrefix(getLevelString(level));
+}
+
+const char* DebugLogger::getTimestamp(char* dest) {
     unsigned long currentTime = millis();
     unsigned long seconds = currentTime / 1000;
     unsigned long milliseconds = currentTime % 1000;
-    return String(seconds) + "." + String(milliseconds);
+    sprintf(dest, "%lu.%03lu", seconds, milliseconds);
+    return dest;
 }
+
+void DebugLogger::printPrefix(const char* levelStr) {
+    char timestamp[20];
+    m_serial->print('[');
+    m_serial->print(getTimestamp(timestamp));
+    m_serial->print("] [");
+    m_serial->print(levelStr);
+    m_serial->print("] ");
+}
+
+const char* DebugLogger::getLevelString(LogLevel level) {
+    switch (level) {
+        case LogLevel::STATUS:
+            return "STATUS";
+        case LogLevel::INFO:
+            return "INFO";
+        case LogLevel::WARNING:
+            return "WARNING";
+        case LogLevel::ERROR:
+            return "ERROR";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+void DebugLogger::printValue(const Printable& value) {
+    m_serial->print(value);
+}
+
 }  // namespace ioteye
 
 ioteye::DebugLogger LibLogger;

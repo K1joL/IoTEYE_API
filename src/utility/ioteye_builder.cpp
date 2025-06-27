@@ -26,32 +26,52 @@
 namespace ioteye {
 
 IIoTeyeBuilder& IIoTeyeBuilder::setSSID(const String& ssid) {
-    m_ssid = ssid;
+    setCommonString(m_ssid, ssid.c_str(), MAX_SSID_LENGTH);
     return *this;
 }
 
 IIoTeyeBuilder& IIoTeyeBuilder::setPassword(const String& pass) {
-    m_password = pass;
+    setCommonString(m_password, pass.c_str(), MAX_PASSWORD_LENGTH);
     return *this;
 }
 
 IIoTeyeBuilder& IIoTeyeBuilder::setToken(const String& token) {
-    m_token = token;
+    setCommonString(m_token, token.c_str(), MAX_TOKEN_LENGTH);
     return *this;
 }
 
 IIoTeyeBuilder& IIoTeyeBuilder::setServerUrl(const String& serverUrl) {
-    m_serverUrl = serverUrl;
+    setCommonString(m_serverUrl, serverUrl.c_str(), MAX_URL_LENGTH);
     return *this;
 }
 
-IIoTeyeBuilder& IIoTeyeBuilder::setLogger(DebugLogger* logger) {
-    m_logger = logger;
+IIoTeyeBuilder& IIoTeyeBuilder::setSSID(const char* ssid) {
+    setCommonString(m_ssid, ssid, MAX_SSID_LENGTH);
     return *this;
 }
 
-IIoTeyeBuilder& IIoTeyeBuilder::setCommunicationLogger(DebugLogger* logger) {
-    m_commLogger = logger;
+IIoTeyeBuilder& IIoTeyeBuilder::setPassword(const char* pass) {
+    setCommonString(m_password, pass, MAX_PASSWORD_LENGTH);
+    return *this;
+}
+
+IIoTeyeBuilder& IIoTeyeBuilder::setToken(const char* token) {
+    setCommonString(m_token, token, MAX_TOKEN_LENGTH);
+    return *this;
+}
+
+IIoTeyeBuilder& IIoTeyeBuilder::setServerUrl(const char* serverUrl) {
+    setCommonString(m_serverUrl, serverUrl, MAX_URL_LENGTH);
+    return *this;
+}
+
+IIoTeyeBuilder& IIoTeyeBuilder::setSerial(HardwareSerial* logger) {
+    m_serial = logger;
+    return *this;
+}
+
+IIoTeyeBuilder& IIoTeyeBuilder::setCommunicationSerial(HardwareSerial* logger) {
+    m_commSerial = logger;
     return *this;
 }
 
@@ -60,4 +80,16 @@ IIoTeyeBuilder& IIoTeyeBuilder::setSelfInit() {
     return *this;
 }
 
+void IIoTeyeBuilder::setCommonString(char* destination, const char* source,
+                                     size_t maxLength) {
+    size_t sourceLength = strlen(source);
+    size_t copyLength = 0;
+    if (sourceLength > maxLength - 1)
+        copyLength = maxLength - 1;
+    else
+        copyLength = sourceLength;
+
+    strncpy(destination, source, copyLength);
+    destination[copyLength] = '\0';
+}
 }  // namespace ioteye

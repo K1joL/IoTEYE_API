@@ -26,9 +26,8 @@
 
 #include <Arduino.h>
 
-#include "IoTeye.hpp"
-#include "utility/ioteye_communication.hpp"
 #include "utility/ioteye_debug.hpp"
+#include "utility/ioteye_types.hpp"
 
 namespace ioteye {
 class IIoTeyeBuilder {
@@ -39,18 +38,26 @@ public:
     IIoTeyeBuilder &setPassword(const String &pass);
     IIoTeyeBuilder &setToken(const String &token);
     IIoTeyeBuilder &setServerUrl(const String &serverUrl);
-    IIoTeyeBuilder &setLogger(DebugLogger *logger);
-    IIoTeyeBuilder &setCommunicationLogger(DebugLogger *logger);
+    IIoTeyeBuilder &setSSID(const char *ssid);
+    IIoTeyeBuilder &setPassword(const char *pass);
+    IIoTeyeBuilder &setToken(const char *token);
+    IIoTeyeBuilder &setServerUrl(const char *serverUrl);
+    IIoTeyeBuilder &setSerial(HardwareSerial *serial);
+    IIoTeyeBuilder &setCommunicationSerial(HardwareSerial *serial);
     IIoTeyeBuilder &setSelfInit();
+
+private:
+    void setCommonString(char *destination, const char *source,
+                         size_t maxLength);
 
 protected:
     bool m_selfInit = false;
-    String m_ssid;
-    String m_password;
-    String m_token;
-    String m_serverUrl;
-    DebugLogger *m_logger = nullptr;
-    DebugLogger *m_commLogger = nullptr;
+    char m_ssid[MAX_SSID_LENGTH];
+    char m_password[MAX_PASSWORD_LENGTH];
+    char m_token[MAX_TOKEN_LENGTH];
+    char m_serverUrl[MAX_URL_LENGTH];
+    HardwareSerial *m_serial = nullptr;
+    HardwareSerial *m_commSerial = nullptr;
 };
 }  // namespace ioteye
 

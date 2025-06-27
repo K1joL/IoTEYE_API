@@ -1,0 +1,18 @@
+{
+  "name": "IoTeye",
+  "version": "3.0.0",
+  "description": "",
+  "keywords": "sensors, control, device, web, cloud, communication, protocol, iot, wifi, ethernet, data, esp8266, http",
+  "authors":
+  {
+    "name":  "Shults Bogdan aka K1joL",
+    "url":   "https://github.com/K1joL",
+    "maintainer": true
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/K1joL/IoTEYE_API.git"
+  },
+  "examples": "examples/*/*.ino"
+}

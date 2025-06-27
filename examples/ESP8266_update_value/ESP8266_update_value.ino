@@ -8,18 +8,17 @@ const char* pass = "****";
 const char* ip = "localhost:8080";
 
 void setup() {
+    // if you needed to Debug something internal Step (1) Set your options
     // Start the serial communication
     Serial.begin(115200);
-    // if you needed to Debug something internal Step (1) Set your options
-    // LibLogger.init(&Serial);
     IoTeyeSettings.setSSID(ssid)
         .setPassword(pass)
         .setToken(token)
         .setServerUrl(ip)
         // if you needed to Debug something internal Step (2)
-        // .setLogger(&LibLogger)
+        // .setLogger(&Serial)
         // if you needed to Debug something internal Step (3) (optional)
-        // .setCommunicationLogger(&LibLogger)
+        // .setCommunicationLogger(&Serial)
         .begin();  // After begin() you can use 'iotEye' object
 
     // Create a virtual pin
@@ -38,9 +37,11 @@ void loop() {
     Serial.println("Virtual Pin Value: " + value);
 
     // Write a value to the virtual pin
-    iotEye.writeVirtualPin(VP(1), String(value.toInt() + 10));  // for int
-    // iotEye.writeVirtualPin(VP(1), value + "10");                // for string
-    // iotEye.writeVirtualPin(VP(1), String(value.toFloat() + 10));// for double
+    int writeValue = value.toInt() + 10;
+    iotEye.writeVirtualPin(VP(1), writeValue);                // for int
+    // iotEye.writeVirtualPin(VP(1), value + "10");           // for string
+    double writeValue = value.toFloat() + 10;
+    // iotEye.writeVirtualPin(VP(1), value.toFloat() + 10);   // for double
 
     // Don't use delays if you want everything to work properly
     // delay(10000);

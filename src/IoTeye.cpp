@@ -23,40 +23,54 @@
 
 #include "IoTeye.hpp"
 
+IoTeye::IoTeye() {
+}
+
 IoTeye::~IoTeye() {
     if (m_selfRegistered) {
         if (!deleteDevice().isSuccess())
-            log("You have to delete device with token: " + m_token +
-                " manually!");
+            m_logger.logln(LogLevel::STATUS,
+                           "You have to delete device with token: ", m_token,
+                           " manually!");
     }
 }
 
 void IoTeye::init() {
-    if (!m_token.isEmpty())
+    if ((m_token[0] != '\0') && (m_epManager.getTemplatesCount() != 0)) {
         m_isReady = getDeviceStatus(m_token) < STATES::MAX_STATES;
+    }
 
     m_preInit = false;
 }
 
-IoTeye &IoTeye::setToken(const String &token) {
-    log("Setting token: " + token);
-    m_token = token;
-    return *this;
-}
-IoTeye &IoTeye::setServerUrl(const String &url) {
-    log("Setting server URL: " + url);
-    m_serverUrl = url;
+IoTeye &IoTeye::setToken(const char *token) {
+    m_logger.logln(LogLevel::INFO, "Setting token: ", token);
+    strncpy(m_token, token, MAX_TOKEN_LENGTH);
+    m_token[MAX_TOKEN_LENGTH - 1] = '\0';
     return *this;
 }
 
-IoTeye &IoTeye::setServerUrl(const String &host, int port) {
-    log("Setting server URL: " + host + ":" + String(port));
-    m_serverUrl = host + String(port);
+IoTeye &IoTeye::setServerUrl(const char *url) {
+    m_logger.logln(LogLevel::INFO, "Setting server URL: ", url);
+    strncpy(m_serverUrl, url, MAX_URL_LENGTH);
+    m_serverUrl[MAX_URL_LENGTH - 1] = '\0';
     return *this;
 }
 
-IoTeye &IoTeye::setLogger(DebugLogger *logger) {
-    m_logger = logger;
+IoTeye &IoTeye::setServerUrl(const char *host, int port) {
+    char url[MAX_URL_LENGTH];
+    snprintf(url, sizeof(url), "%s:%d", host, port);
+    return setServerUrl(url);
+}
+
+IoTeye &IoTeye::setLogger(const DebugLogger &logger) {
+    m_logger.setSerial(logger);
+    return *this;
+}
+
+IoTeye &IoTeye::setSerial(HardwareSerial *serial) {
+    if (serial != nullptr)
+        m_logger.setSerial(serial);
     return *this;
 }
 
@@ -71,99 +85,103 @@ void IoTeye::run(unsigned long updateInterval) {
 
     // Check if it's time to update the device status
     if (currentTime - m_lastUpdateTime >= updateInterval) {
-        log("Updating device status");
+        m_logger.logln(LogLevel::INFO, "Updating device status");
         updateDeviceStatus();
         m_lastUpdateTime = currentTime;  // Reset the timer
     }
 }
 
-HttpCode IoTeye::createVirtualPin(const String &pinNumber,
-                                  const String &dataType,
-                                  const String &defaultData) {
-    String endpoint;
-    endpoint.reserve(256);  // Pre-allocate a reasonable buffer
-    endpoint = ENDPOINT_DEVICES;
-    endpoint += '/' + m_token;
-    endpoint += ENDPOINT_PINS;
-    endpoint += '/' + pinNumber;
-    endpoint += '/' + dataType;
-    endpoint += '/' + defaultData;
-    endpoint += CREATE_PIN;
-
-    log("Creating virtual pin with endpoint: " + endpoint);
+HttpCode IoTeye::createVirtualPin(const char *pinNumber, const char *dataType,
+                                  const char *defaultData) {
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getCreateVirtPinEndpoint(endpoint, m_token, pinNumber, dataType,
+                                         defaultData);
+    m_logger.logln(
+        LogLevel::INFO,
+        "Creating virtual pin with default data (str): ", defaultData);
+    m_logger.logln(LogLevel::INFO,
+                   "Creating virtual pin with endpoint: ", endpoint);
     return sendRequest(HttpMethod::POST, endpoint).statusCode;
 }
 
-HttpCode IoTeye::createVirtualPin(const String &pinNumber,
-                                  const String &dataType, int defaultData) {
-    log("Creating virtual pin with default data (int): " + String(defaultData));
-    return createVirtualPin(pinNumber, dataType, String(defaultData));
+HttpCode IoTeye::createVirtualPin(const char *pinNumber, const char *dataType,
+                                  int defaultData) {
+    m_logger.logln(
+        LogLevel::INFO,
+        "Creating virtual pin with default data (int): ", defaultData);
+    char defDataStr[MAX_INT_STR_WIDTH];
+    itoa(defaultData, defDataStr, 10);
+    return createVirtualPin(pinNumber, dataType, defDataStr);
 }
 
-HttpCode IoTeye::createVirtualPin(const String &pinNumber,
-                                  const String &dataType, double defaultData) {
-    log("Creating virtual pin with default data (double): " +
-        String(defaultData));
-    return createVirtualPin(pinNumber, dataType, String(defaultData));
+HttpCode IoTeye::createVirtualPin(const char *pinNumber, const char *dataType,
+                                  double defaultData, uint8_t precision) {
+    m_logger.logln(
+        LogLevel::INFO,
+        "Creating virtual pin with default data (double): ", defaultData);
+    char defDataStr[MAX_DOUBLE_STR_WIDTH];
+    snprintf(defDataStr, MAX_DOUBLE_STR_WIDTH, "%.*f", precision, defaultData);
+    return createVirtualPin(pinNumber, dataType, defDataStr);
 }
 
-HttpCode IoTeye::writeVirtualPin(const String &pinNumber, const String &value) {
-    String endpoint;
-    endpoint = ENDPOINT_DEVICES;
-    endpoint += '/' + m_token;
-    endpoint += ENDPOINT_PINS;
-    endpoint += '/' + pinNumber;
-    endpoint += '/' + value;
-    endpoint += UPDATE_PIN;
-
-    log("Writing virtual pin with endpoint: " + endpoint);
+HttpCode IoTeye::writeVirtualPin(const char *pinNumber, const char *value) {
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getUpdateVirtPinEndpoint(endpoint, m_token, pinNumber, value);
+    m_logger.logln(LogLevel::INFO,
+                   "Writing virtual pin with endpoint: ", endpoint);
     return sendRequest(HttpMethod::PUT, endpoint).statusCode;
 }
 
-HttpCode IoTeye::deleteVirtualPin(const String &pinNumber) {
-    String endpoint;
-    endpoint += ENDPOINT_DEVICES;
-    endpoint += "/" + m_token;
-    endpoint += ENDPOINT_PINS;
-    endpoint += "/" + pinNumber;
-    endpoint += DELETE_PIN;
+HttpCode IoTeye::writeVirtualPin(const char *pinNumber, const double value,
+                                 uint8_t precision) {
+    char valueStr[MAX_DOUBLE_STR_WIDTH];
+    snprintf(valueStr, MAX_DOUBLE_STR_WIDTH, "%.*f", precision, value);
+    return writeVirtualPin(pinNumber, valueStr);
+}
 
-    log("Deleting virtual pin with endpoint: " + endpoint);
+HttpCode IoTeye::writeVirtualPin(const char *pinNumber, const int value) {
+    char valueStr[MAX_INT_STR_WIDTH];
+    snprintf(valueStr, MAX_INT_STR_WIDTH, "%d", value);
+    return writeVirtualPin(pinNumber, valueStr);
+}
+
+HttpCode IoTeye::deleteVirtualPin(const char *pinNumber) {
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getDeleteVirtPinEndpoint(endpoint, m_token, pinNumber);
+    m_logger.logln(LogLevel::INFO,
+                   "Deleting virtual pin with endpoint: ", endpoint);
     return sendRequest(HttpMethod::DELETE, endpoint).statusCode;
 }
 
-String IoTeye::getVirtualPin(const String &pinNumber) {
-    String endpoint;
-    endpoint = ENDPOINT_DEVICES;
-    endpoint += '/' + m_token;
-    endpoint += ENDPOINT_PINS;
-    endpoint += '/' + pinNumber;
-    endpoint += GET_PIN;
-
-    log("Getting virtual pin with endpoint: " + endpoint);
+const char *IoTeye::getVirtualPin(const char *pinNumber) {
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getGetVirtPinEndpoint(endpoint, m_token, pinNumber);
+    m_logger.logln(LogLevel::INFO,
+                   "Getting virtual pin with endpoint: ", endpoint);
     if (sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
-        return extractValue(m_lastResponse.body, "PinValue");
-    return String();
+        return extractValue(m_lastResponse.body.c_str(), "PinValue");
+    return "";
 }
 
-uint16_t IoTeye::getDeviceStatus(const String &otherToken) {
-    String token;
-    if (otherToken.isEmpty())
+uint16_t IoTeye::getDeviceStatus(const char *otherToken) {
+    const char *token;
+    if (otherToken == "")
         return UINT16_MAX;
     else
         token = otherToken;
 
-    String endpoint;
-    endpoint += ENDPOINT_DEVICES;
-    endpoint += "/" + m_token + DEVICE_STATUS;
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getDeviceStatusEndpoint(endpoint, token);
 
-    log("Getting device status with endpoint: " + endpoint);
+    m_logger.logln(LogLevel::INFO,
+                   "Getting device status with endpoint: ", endpoint);
     if (!sendRequest(HttpMethod::GET, endpoint).statusCode.isSuccess())
         return UINT16_MAX;
-    if (!m_lastResponse.body.isEmpty()) {
-        String statusStr = extractValue(m_lastResponse.body, "devStatus");
-        if (!statusStr.isEmpty()) {
-            uint16_t status = statusStr.toInt();
+    if (m_lastResponse.body != "") {
+        const char *statusStr =
+            extractValue(m_lastResponse.body.c_str(), "devStatus");
+        if (statusStr != "") {
+            uint16_t status = atoi(statusStr);
             return status;
         }
     }
@@ -172,55 +190,62 @@ uint16_t IoTeye::getDeviceStatus(const String &otherToken) {
 }
 
 HttpCode IoTeye::updateDeviceStatus() {
-    String endpoint;
-    endpoint += ENDPOINT_DEVICES;
-    endpoint += "/" + m_token + DEVICE_STATUS_UPDATE;
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getUpdateDeviceStatusEndpoint(endpoint, m_token);
 
-    log("Updating device status with endpoint: " + endpoint);
+    m_logger.logln(LogLevel::INFO,
+                   "Updating device status with endpoint: ", endpoint);
     return sendRequest(HttpMethod::PUT, endpoint).statusCode;
 }
 
 HttpCode IoTeye::registerDevice() {
     if (m_selfRegistered)
-        return HttpCode::NULL_CODE;
-    String endpoint;
-    endpoint += ENDPOINT_DEVICES;
-    endpoint += REGISTER_DEVICE;
+    return HttpCode::NULL_CODE;
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_logger.logln(LogLevel::ERROR, "registerDevice;");
+    m_epManager.getRegisterDeviceEndpoint(endpoint);
 
-    log("Registering device...");
+    m_logger.logln(LogLevel::STATUS, "Registering device...");
+    m_logger.logln(LogLevel::INFO,
+                   "Registering device with endpoint: ", endpoint);
     sendRequest(HttpMethod::POST, endpoint);
 
     if (m_lastResponse.statusCode.isSuccess()) {
-        if (!m_lastResponse.body.isEmpty()) {
-            m_token = extractValue(m_lastResponse.body, "token");
-            log("Device registered with token: " + m_token);
+        if (m_lastResponse.body != "") {
+            strncpy(m_token, extractValue(m_lastResponse.body.c_str(), "token"),
+                    MAX_TOKEN_LENGTH);
+            m_token[MAX_TOKEN_LENGTH - 1] = '\0';
+            m_logger.logln(LogLevel::STATUS,
+                           "Device registered with token: ", m_token);
             m_selfRegistered = true;
         }
     } else {
-        log("Error while registering device:" + m_lastResponse.body);
+        m_logger.logln(LogLevel::WARNING,
+                       "Error while registering device:", m_lastResponse.body);
     }
 
     return m_lastResponse.statusCode;
 }
 
-HttpCode IoTeye::deleteDevice(const String &token) {
-    String endpoint;
-    endpoint += ENDPOINT_DEVICES;
-    endpoint += "/" + token + DELETE_DEVICE;
+HttpCode IoTeye::deleteDevice(const char *token) {
+    char endpoint[MAX_ENDPOINT_SIZE];
+    m_epManager.getDeleteDeviceEndpoint(endpoint, token);
 
-    log("Deleting device with token: " + token);
+    m_logger.logln(LogLevel::STATUS, "Deleting device with token: ", token);
+    m_logger.logln(LogLevel::INFO, "Deleting device with endpoint: ", endpoint);
     sendRequest(HttpMethod::DELETE, endpoint);
 
     if (m_lastResponse.statusCode.isSuccess())
-        log("Device deleted successfully");
+        m_logger.logln(LogLevel::STATUS, "Device deleted successfully");
     if (m_token == token) {
-        m_token.clear();
+        m_token[0] = '\0';
         m_isReady = false;
         m_preInit = true;
         if (m_selfRegistered)
             m_selfRegistered = false;
     } else
-        log("Error while deleting device:" + m_lastResponse.body);
+        m_logger.logln(LogLevel::WARNING,
+                       "Error while deleting device:", m_lastResponse.body);
 
     return m_lastResponse.statusCode;
 }
@@ -229,63 +254,84 @@ HttpCode IoTeye::deleteDevice() {
     return deleteDevice(m_token);
 }
 
+HttpCode IoTeye::getEndpoints() {
+    // 1. Send init request
+    // 2. Parse Templates
+    // 3. Set TemplatesCount
+    ioteye::Response response = sendRequest(HttpMethod::GET, "/init");
+    m_epManager.setTemplatesCount(ioteye::parseTemplates(
+        response.body.c_str(), m_epManager.getEndpointTable()));
+    return response.statusCode;
+}
+
 HttpCode IoTeye::getLastHttpCode() {
-    log("Getting last HTTP code: " + String(m_lastResponse.statusCode));
     return HttpCode(m_lastResponse.statusCode);
 }
 
-String IoTeye::getLastResponse() {
-    log("Getting last response: " + m_lastResponse.body);
-    return m_lastResponse.body;
+const char *IoTeye::getLastResponse() {
+    return m_lastResponse.body.c_str();
 }
 
-ioteye::Response IoTeye::sendRequest(HttpMethod method, const String &endpoint,
+ioteye::Response IoTeye::sendRequest(HttpMethod method, const char *endpoint,
                                      const ioteye::Payload &payload) {
     if (!m_isReady && !m_preInit) {
-        log("IoTeye is not ready yet!");
+        m_logger.logln(LogLevel::STATUS, "IoTeye is not ready yet!");
         return {"", HttpCode(-1)};
     }
     if (!m_commInterface) {
-        log("Communication interface is not provided!");
+        m_logger.logln(LogLevel::ERROR,
+                       "Communication interface is not provided!");
         return {"", HttpCode(-2)};
     }
-    String url = "http://";
-    url += m_serverUrl;
-    if (!endpoint.isEmpty())
-        url += endpoint;
-    else
-        url += '/';
 
-    String data;
+    char url[MAX_URL_LENGTH];
+    buildUrl(url, endpoint);
+
+    const char *data;
     if (payload.isEmpty())
-        data = payload.GetArgsString();
+        data = payload.GetArgsString().c_str();
 
-    log("Sending request to URL: " + url + " with data: " + data);
+    m_logger.logln(LogLevel::INFO, "Sending request to URL: ", url,
+                   " with data: ", data);
     m_lastResponse = m_commInterface->sendData(method, url, data);
-    log("LastResponse: " + m_lastResponse.body);
+    m_logger.logln(LogLevel::INFO, "Response: ", m_lastResponse.body);
     return m_lastResponse;
 }
 
-String IoTeye::extractValue(const String &responseText, const String &key) {
-    int startPos = responseText.indexOf(key + '=');
-    if (startPos == -1) {
-        return String();
-    }
-    startPos += key.length() + 1;
-    int endPos =
-        responseText.indexOf(" \r\n", startPos);  // Find the end of the value
-    if (endPos == -1) {
-        return responseText.substring(startPos);
-    }
-    if (startPos >= endPos) {
-        return String();  // Invalid positions
-    }
-    return responseText.substring(startPos, endPos);
+const char *IoTeye::extractValue(const char *responseText, const char *key) {
+    const char *startPos = strstr(responseText, key);
+    if (startPos == nullptr)
+        return "";
+    startPos += strlen(key);
+    if (*startPos != '=')
+        return "";
+    ++startPos;
+    // Find the end of the value
+    const char *endPos = strpbrk(startPos, " \r\n");
+    if (endPos == nullptr)
+        endPos = responseText + strlen(responseText);
+    static char value[MAX_VALUE_LENGTH + 1];
+    int valueLength = endPos - startPos;
+    if (valueLength > MAX_VALUE_LENGTH)
+        valueLength = MAX_COMMAND_LENGTH;
+    strncpy(value, startPos, valueLength);
+    value[valueLength] = '\0';
+    return value;
 }
 
-void IoTeye::log(const String &message) {
-    if (m_logger)
-        m_logger->log(DebugLogger::INFO, message);
+void IoTeye::buildUrl(char *url, const char *endpoint) {
+    strncpy(url, "http://", MAX_URL_LENGTH);
+    url[MAX_URL_LENGTH - 1] = '\0';
+    strncat(url, m_serverUrl, MAX_URL_LENGTH - strlen(url) - 1);
+    url[MAX_URL_LENGTH - 1] = '\0';
+
+    if (endpoint != nullptr && endpoint[0] != '\0') {
+        strncat(url, endpoint, MAX_URL_LENGTH - strlen(url) - 1);
+        url[MAX_URL_LENGTH - 1] = '\0';
+    } else {
+        strncat(url, "/", MAX_URL_LENGTH - strlen(url) - 1);
+        url[MAX_URL_LENGTH - 1] = '\0';
+    }
 }
 
 IoTeye iotEye;

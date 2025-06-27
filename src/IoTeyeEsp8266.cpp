@@ -24,12 +24,13 @@
 #include "IoTeyeEsp8266.hpp"
 namespace ioteye {
 void IoTeyeBuilderEsp8266::begin() {
-    ESP8266Comm.setLogger(m_commLogger);
+    ESP8266Comm.setSerial(m_commSerial);
     ESP8266Comm.begin(m_ssid, m_password);
     iotEye.setServerUrl(m_serverUrl)
-            .setLogger(m_logger)
-            .setCommunicationInterface(&ESP8266Comm);
-    if(m_selfInit)
+        .setSerial(m_serial)
+        .setCommunicationInterface(&ESP8266Comm)    // Set comm interface First!
+        .getEndpoints();                            // Then get endpoints
+    if (m_selfInit)
         iotEye.registerDevice();
     else
         iotEye.setToken(m_token);

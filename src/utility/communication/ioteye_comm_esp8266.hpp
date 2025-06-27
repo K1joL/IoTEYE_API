@@ -29,7 +29,6 @@
 #include <ESP8266WiFi.h>
 
 #include "utility/ioteye_communication.hpp"
-#include "utility/ioteye_config.hpp"
 #include "utility/ioteye_debug.hpp"
 #include "utility/ioteye_types.hpp"
 
@@ -38,16 +37,15 @@ class ESP8266Communincation : public IIoTeyeCommunication {
 public:
     ESP8266Communincation();
     ~ESP8266Communincation();
-    Response sendData(HttpMethod method, const String& url,
-                      const String& data = String()) override;
-    void setLogger(DebugLogger* logger) override;
-    void begin(const String& ssid, const String& password);
-    void log(DebugLogger::LogLevel logLevel, const String& message);
+    Response sendData(HttpMethod method, const char* url,
+                      const char* data = "") override;
+    void setSerial(HardwareSerial* serial) override;
+    void begin(const char* ssid, const char* password);
 
 private:
     HTTPClient m_httpClient;
     WiFiClient m_wifiClient;
-    DebugLogger* m_logger = nullptr;
+    DebugLogger m_logger;
 };
 
 }  // namespace ioteye

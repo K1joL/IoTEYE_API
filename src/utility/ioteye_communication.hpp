@@ -26,15 +26,16 @@
 
 #include "ioteye_types.hpp"
 
+class HardwareSerial;
 namespace ioteye {
-class DebugLogger;
 
 class IIoTeyeCommunication {
 public:
     virtual ~IIoTeyeCommunication() = default;
 
-    virtual Response sendData(HttpMethod method, const String& url, const String& data = String()) = 0;
-    virtual void setLogger(DebugLogger *logger) = 0;
+    virtual Response sendData(HttpMethod method, const char* url,
+                              const char* data = "") = 0;
+    virtual void setSerial(HardwareSerial* serial) = 0;
 };
 }  // namespace ioteye
 #endif  // IOTEYE_COMMUNICATION_HPP
