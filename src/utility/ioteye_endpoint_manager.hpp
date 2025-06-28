@@ -38,7 +38,6 @@ struct TemplatesUnion {
     char pinNumber[MAX_TEMPLATE_PINNUMBER_LENGTH] = {0};  // from 1 to 999
     char value[MAX_TEMPLATE_VALUE_LENGTH] = {0};
     char dataType[MAX_TEMPLATE_DATATYPE_LENGTH] = {0};
-    char defValue[MAX_TEMPLATE_DEFVALUE_LENGTH] = {0};
 };
 
 struct EndpointTemplate {
@@ -78,15 +77,7 @@ private:
     uint8_t m_templatesCount = 0;
 };
 
-enum TemplatesNumber{
-    CMD,
-    TOKEN,
-    PINNUMBER,
-    VALUE,
-    DATATYPE,
-    DEFVALUE,
-    NUMBER_MAX
-};
+enum TemplatesNumber { CMD, TOKEN, PINNUMBER, VALUE, DATATYPE, NUMBER_MAX };
 
 // Returns number of templates parsed
 uint8_t parseTemplates(const char *jsonString, EndpointTemplate *templates,

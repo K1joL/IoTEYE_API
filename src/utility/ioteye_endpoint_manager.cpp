@@ -53,11 +53,7 @@ void EndpointManager::getEndpoint(char* endpointDest, uint8_t commandCode,
     va_start(args, argCount);
     for (uint8_t argI = 1; argI <= argCount; ++argI) {
         const char* arg = va_arg(args, const char*);
-        uint8_t argNumber = argI;
-        // TODO: FIX THIS TO MAKE IT MORE ROBUST
-        if (argCount == 4 && argI > 2) // now its only one function with value
-            ++argNumber;
-        addToUnion(&templUnion, argNumber, arg);
+        addToUnion(&templUnion, argI, arg);
     }
     va_end(args);
 
@@ -68,7 +64,8 @@ void EndpointManager::getEndpoint(char* endpointDest, uint8_t commandCode,
         const char* currentPart = foundTempl->parts[partI];
         const char* epPart = nullptr;
         if (currentPart != nullptr && currentPart[1] == '{') {
-            epPart = getFromUnion(&templUnion, getTemplateNumber(currentPart+1));
+            epPart =
+                getFromUnion(&templUnion, getTemplateNumber(currentPart + 1));
             if (MAX_ENDPOINT_SIZE > currentLength + 1) {
                 strcat(endpointDest, "/");
                 ++currentLength;
@@ -129,8 +126,8 @@ void EndpointManager::getCreateVirtPinEndpoint(char* endpointDest,
                                                const char* pinNumber,
                                                const char* dataType,
                                                const char* defValue) {
-    getEndpoint(endpointDest, CMD_CREATE_PIN, 4, token, pinNumber, dataType,
-                defValue);
+    getEndpoint(endpointDest, CMD_CREATE_PIN, 4, token, pinNumber, defValue,
+                dataType);
 }
 
 void EndpointManager::getUpdateVirtPinEndpoint(char* endpointDest,
@@ -298,16 +295,12 @@ bool addToUnion(TemplatesUnion* templUnion, uint8_t templNumber,
             strlcpy(templUnion->pinNumber, templValue,
                     MAX_TEMPLATE_PINNUMBER_LENGTH);
             return true;
+        case TemplatesNumber::VALUE:
+            strlcpy(templUnion->value, templValue, MAX_TEMPLATE_VALUE_LENGTH);
+            return true;
         case TemplatesNumber::DATATYPE:
             strlcpy(templUnion->dataType, templValue,
                     MAX_TEMPLATE_DATATYPE_LENGTH);
-            return true;
-        case TemplatesNumber::DEFVALUE:
-            strlcpy(templUnion->defValue, templValue,
-                    MAX_TEMPLATE_DEFVALUE_LENGTH);
-            return true;
-        case TemplatesNumber::VALUE:
-            strlcpy(templUnion->value, templValue, MAX_TEMPLATE_VALUE_LENGTH);
             return true;
         default:
             return false;
@@ -327,8 +320,6 @@ const char* getFromUnion(TemplatesUnion* templUnion, uint8_t templNumber) {
             return templUnion->pinNumber;
         case TemplatesNumber::DATATYPE:
             return templUnion->dataType;
-        case TemplatesNumber::DEFVALUE:
-            return templUnion->defValue;
         case TemplatesNumber::VALUE:
             return templUnion->value;
         default:
@@ -347,14 +338,10 @@ uint8_t getTemplateNumber(const char* templStr) {
             return TemplatesNumber::TOKEN;
         case 'p':
             return TemplatesNumber::PINNUMBER;
-        case 'd':
-            if (templStr[2] == 'a')
-                return TemplatesNumber::DATATYPE;
-            else
-                return TemplatesNumber::DEFVALUE;
-            break;
         case 'v':
             return TemplatesNumber::VALUE;
+        case 'd':
+            return TemplatesNumber::DATATYPE;
         default:
             return TemplatesNumber::NUMBER_MAX;
     }
