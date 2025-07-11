@@ -43,13 +43,14 @@ void DebugLogger::logln(LogLevel level, const char* message) {
     if (m_serial == nullptr)
         return;
     log(level, message);
-    m_serial->println(message);
+    m_serial->println();
 }
 
 void DebugLogger::log(LogLevel level, const char* message) {
     if (m_serial == nullptr)
         return;
     printPrefix(getLevelString(level));
+    m_serial->print(message);
 }
 
 const char* DebugLogger::getTimestamp(char* dest) {
