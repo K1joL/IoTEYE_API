@@ -77,7 +77,7 @@ public:
 
     // methods with return value
     uint16_t getDeviceStatus(const char* otherToken = "");
-    const char* getVirtualPin(const char* pinNumber);
+    const char* getVirtualPin(const char* pinNumber, const char* otherToken = "");
     // Use this methods with above for checks
     HttpCode getLastHttpCode();
     const char* getLastResponse();
